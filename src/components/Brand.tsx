@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import brandIcon from "@/assets/brand-icon.png";
+import markLight from "@/assets/mark-light.png";
+import markDark from "@/assets/mark-dark.png";
+
 
 
 
