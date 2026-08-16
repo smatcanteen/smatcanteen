@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExpenseRouteImport } from './routes/expense'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as SaleRouteImport } from './routes/sale'
+import { Route as StockRouteImport } from './routes/stock'
 import { Route as StockInRouteImport } from './routes/stock-in'
+import { Route as TermCapitalRouteImport } from './routes/term-capital'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,9 +27,19 @@ const ExpenseRoute = ExpenseRouteImport.update({
   path: '/expense',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SaleRoute = SaleRouteImport.update({
   id: '/sale',
   path: '/sale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockRoute = StockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StockInRoute = StockInRouteImport.update({
@@ -34,39 +47,78 @@ const StockInRoute = StockInRouteImport.update({
   path: '/stock-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermCapitalRoute = TermCapitalRouteImport.update({
+  id: '/term-capital',
+  path: '/term-capital',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/expense': typeof ExpenseRoute
+  '/login': typeof LoginRoute
   '/sale': typeof SaleRoute
+  '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/term-capital': typeof TermCapitalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/expense': typeof ExpenseRoute
+  '/login': typeof LoginRoute
   '/sale': typeof SaleRoute
+  '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/term-capital': typeof TermCapitalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/expense': typeof ExpenseRoute
+  '/login': typeof LoginRoute
   '/sale': typeof SaleRoute
+  '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/term-capital': typeof TermCapitalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/expense' | '/sale' | '/stock-in'
+  fullPaths:
+    | '/'
+    | '/expense'
+    | '/login'
+    | '/sale'
+    | '/stock'
+    | '/stock-in'
+    | '/term-capital'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/expense' | '/sale' | '/stock-in'
-  id: '__root__' | '/' | '/expense' | '/sale' | '/stock-in'
+  to:
+    | '/'
+    | '/expense'
+    | '/login'
+    | '/sale'
+    | '/stock'
+    | '/stock-in'
+    | '/term-capital'
+  id:
+    | '__root__'
+    | '/'
+    | '/expense'
+    | '/login'
+    | '/sale'
+    | '/stock'
+    | '/stock-in'
+    | '/term-capital'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExpenseRoute: typeof ExpenseRoute
+  LoginRoute: typeof LoginRoute
   SaleRoute: typeof SaleRoute
+  StockRoute: typeof StockRoute
   StockInRoute: typeof StockInRoute
+  TermCapitalRoute: typeof TermCapitalRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,11 +137,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExpenseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sale': {
       id: '/sale'
       path: '/sale'
       fullPath: '/sale'
       preLoaderRoute: typeof SaleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock': {
+      id: '/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof StockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stock-in': {
@@ -99,14 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StockInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/term-capital': {
+      id: '/term-capital'
+      path: '/term-capital'
+      fullPath: '/term-capital'
+      preLoaderRoute: typeof TermCapitalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExpenseRoute: ExpenseRoute,
+  LoginRoute: LoginRoute,
   SaleRoute: SaleRoute,
+  StockRoute: StockRoute,
   StockInRoute: StockInRoute,
+  TermCapitalRoute: TermCapitalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
