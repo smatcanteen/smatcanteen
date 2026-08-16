@@ -20,6 +20,7 @@ import { Route as ReportRouteImport } from './routes/report'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as StockInRouteImport } from './routes/stock-in'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as TermCapitalRouteImport } from './routes/term-capital'
 import { Route as TermTransitionRouteImport } from './routes/term-transition'
 
@@ -78,6 +79,11 @@ const StockInRoute = StockInRouteImport.update({
   path: '/stock-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermCapitalRoute = TermCapitalRouteImport.update({
   id: '/term-capital',
   path: '/term-capital',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
 }
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
 }
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
 }
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/sale'
     | '/stock'
     | '/stock-in'
+    | '/subscription'
     | '/term-capital'
     | '/term-transition'
   fileRoutesByTo: FileRoutesByTo
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/sale'
     | '/stock'
     | '/stock-in'
+    | '/subscription'
     | '/term-capital'
     | '/term-transition'
   id:
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/sale'
     | '/stock'
     | '/stock-in'
+    | '/subscription'
     | '/term-capital'
     | '/term-transition'
   fileRoutesById: FileRoutesById
@@ -195,6 +207,7 @@ export interface RootRouteChildren {
   SaleRoute: typeof SaleRoute
   StockRoute: typeof StockRoute
   StockInRoute: typeof StockInRoute
+  SubscriptionRoute: typeof SubscriptionRoute
   TermCapitalRoute: typeof TermCapitalRoute
   TermTransitionRoute: typeof TermTransitionRoute
 }
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StockInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/term-capital': {
       id: '/term-capital'
       path: '/term-capital'
@@ -307,6 +327,7 @@ const rootRouteChildren: RootRouteChildren = {
   SaleRoute: SaleRoute,
   StockRoute: StockRoute,
   StockInRoute: StockInRoute,
+  SubscriptionRoute: SubscriptionRoute,
   TermCapitalRoute: TermCapitalRoute,
   TermTransitionRoute: TermTransitionRoute,
 }
