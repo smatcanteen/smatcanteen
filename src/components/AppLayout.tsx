@@ -1,106 +1,158 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Icon } from "./Icon";
-import logoStacked from "@/assets/logo-stacked.png.asset.json";
+import logoReversed from "@/assets/logo-reversed.png.asset.json";
 
-const nav = [
+const bottomNav = [
   { to: "/", icon: "home", label: "Home" },
   { to: "/stock", icon: "inventory_2", label: "Stock" },
   { to: "/report", icon: "bar_chart", label: "Reports" },
-  { to: "/debtors", icon: "group", label: "Credit" },
-  { to: "/close-out", icon: "task_alt", label: "Close" },
-  { to: "/subscription", icon: "card_membership", label: "Plan" },
-  { to: "/settings", icon: "settings", label: "Settings" },
+  { to: "/settings", icon: "more_horiz", label: "More" },
+] as const;
+
+const topNav = [
+  { to: "/", label: "Home" },
+  { to: "/stock", label: "Stock" },
+  { to: "/report", label: "Reports" },
+  { to: "/debtors", label: "Credit" },
+  { to: "/close-out", label: "Close" },
+  { to: "/subscription", label: "Plan" },
+  { to: "/settings", label: "Settings" },
 ];
 
-const bottomNav = nav.filter((n) => n.to !== "/subscription");
-
+/** MoMo-style app shell: deep green top band, floating content, phone-first bottom bar. */
 export function AppLayout({
   title,
   back,
+  hero,
   children,
 }: {
   title: string;
   back?: boolean;
+  /** Optional card that floats over the green band (home screen balance card). */
+  hero?: ReactNode;
   children: ReactNode;
 }) {
   const router = useRouter();
   const path = router.state.location.pathname;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between bg-surface/95 px-4 backdrop-blur md:px-gutter">
-        <div className="flex items-center gap-2">
-          {back ? (
-            <Link
-              to="/"
-              className="-ml-2 rounded-full p-2 text-primary transition-colors hover:bg-surface-high"
-              aria-label="Back to home"
-            >
-              <Icon name="arrow_back" />
-            </Link>
-          ) : (
-            <img
-              src={logoStacked.url}
-              alt="SmartCanteen"
-              className="h-9 w-9 rounded-full object-cover"
-            />
-          )}
-          <h1 className="text-xl font-bold text-primary">{title}</h1>
-        </div>
-        <nav className="hidden items-center gap-1 md:flex">
-          {nav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              className={`rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
-                path === n.to
-                  ? "bg-primary text-on-primary"
-                  : "text-on-surface-variant hover:bg-surface-high"
-              }`}
-            >
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-        <Link
-          to="/login"
-          className="ml-2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary-container bg-surface-variant text-primary"
-          aria-label="Account"
-        >
-          <Icon name="person" />
-        </Link>
-      </header>
+    <div className="flex min-h-screen flex-col bg-surface-high">
+      <div className={`bg-primary ${hero ? "pb-20" : "pb-6"}`}>
+        <header className="mx-auto flex h-16 w-full max-w-container-max items-center justify-between px-4 md:px-gutter">
+          <div className="flex min-w-0 items-center gap-2">
+            {back ? (
+              <Link
+                to="/"
+                className="-ml-2 shrink-0 rounded-full p-2 text-on-primary/90 transition-colors hover:bg-on-primary/10"
+                aria-label="Back to home"
+              >
+                <Icon name="arrow_back" />
+              </Link>
+            ) : (
+              <img src={logoReversed.url} alt="SmartCanteen" className="h-8 w-8 shrink-0 object-contain" />
+            )}
+            <h1 className="truncate text-lg font-bold text-on-primary">{title}</h1>
+          </div>
 
-      <main className="mx-auto w-full max-w-container-max flex-grow space-y-lg px-4 py-md pb-28 md:px-gutter md:pb-lg">
+          <nav className="hidden items-center gap-1 md:flex">
+            {topNav.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={`rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
+                  path === n.to
+                    ? "bg-on-primary text-primary"
+                    : "text-on-primary/80 hover:bg-on-primary/10"
+                }`}
+              >
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <Link
+              to="/subscription"
+              className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
+              aria-label="Subscription"
+            >
+              <Icon name="card_membership" />
+            </Link>
+            <Link
+              to="/login"
+              className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
+              aria-label="Account"
+            >
+              <Icon name="account_circle" />
+            </Link>
+          </div>
+        </header>
+
+        {hero ? (
+          <div className="mx-auto w-full max-w-container-max px-4 md:px-gutter">{hero}</div>
+        ) : null}
+      </div>
+
+      <main
+        className={`mx-auto w-full max-w-container-max flex-grow space-y-md rounded-t-2xl bg-surface-high px-4 pb-32 pt-md md:px-gutter md:pb-lg ${
+          hero ? "-mt-14" : "-mt-3"
+        }`}
+      >
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 z-50 flex w-full justify-around rounded-t-xl bg-surface-container px-2 py-2 shadow-[0_-2px_10px_rgba(19,82,48,0.1)] md:hidden">
-        {bottomNav.map((n) => {
-          const active = path === n.to;
-          return (
+      <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-outline-variant/40 bg-surface-lowest md:hidden">
+        <div className="relative mx-auto grid max-w-container-max grid-cols-5 items-end px-2 pb-2 pt-2">
+          {bottomNav.slice(0, 2).map((n) => (
+            <BottomItem key={n.to} {...n} active={path === n.to} />
+          ))}
+          <div className="flex justify-center">
             <Link
-              key={n.to}
-              to={n.to}
-              className={`flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 ${
-                active ? "text-primary" : "text-on-surface-variant"
-              }`}
+              to="/sale"
+              aria-label="Record a sale"
+              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container shadow-raised transition-transform active:scale-95"
             >
-              <Icon name={n.icon} className={active ? "" : "opacity-70"} />
-              <span className="text-[11px] font-semibold">{n.label}</span>
+              <Icon name="point_of_sale" className="text-[26px]" />
             </Link>
-          );
-        })}
+          </div>
+          {bottomNav.slice(2).map((n) => (
+            <BottomItem key={n.to} {...n} active={path === n.to} />
+          ))}
+        </div>
       </nav>
     </div>
+  );
+}
+
+function BottomItem({
+  to,
+  icon,
+  label,
+  active,
+}: {
+  to: string;
+  icon: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className={`flex flex-col items-center gap-0.5 py-1 ${
+        active ? "text-primary" : "text-on-surface-variant/70"
+      }`}
+    >
+      <Icon name={icon} className={active ? "" : "opacity-80"} />
+      <span className="text-[11px] font-semibold">{label}</span>
+    </Link>
   );
 }
 
 export function Saved({ show, onUndo }: { show: boolean; onUndo: () => void }) {
   if (!show) return null;
   return (
-    <div className="fixed inset-x-0 bottom-24 z-[60] mx-auto flex w-[min(92%,420px)] items-center gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-inverse-on-surface shadow-raised md:bottom-8">
+    <div className="fixed inset-x-0 bottom-28 z-[60] mx-auto flex w-[min(92%,420px)] items-center gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-inverse-on-surface shadow-raised md:bottom-8">
       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-inverse-primary text-primary">
         <Icon name="check" className="text-[18px]" />
       </span>
