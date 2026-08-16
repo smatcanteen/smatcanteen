@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import logoStacked from "@/assets/logo-stacked.png.asset.json";
-import logoReversed from "@/assets/logo-reversed.png.asset.json";
+
 
 /**
  * One brand framework for every surface: operator app, admin console and agent

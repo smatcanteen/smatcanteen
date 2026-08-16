@@ -129,7 +129,7 @@ export function Kpi({ label, value, sub, icon }: { label: string; value: string;
       <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant">
         {icon ? <Icon name={icon} className="text-[16px]" /> : null} {label}
       </p>
-      <p className="mt-1 truncate text-2xl font-bold text-on-surface">{value}</p>
+      <p className="mt-1 truncate text-xl font-bold text-on-surface sm:text-2xl">{value}</p>
       {sub ? <p className="text-xs text-on-surface-variant">{sub}</p> : null}
     </div>
   );
