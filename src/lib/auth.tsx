@@ -207,36 +207,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => setData((d) => ({ ...d, sessionId: null })), []);
 
-  const createAccount = useCallback<Ctx["createAccount"]>(
-    (input) => {
-      const email = input.email.trim().toLowerCase();
-      if (!input.name.trim() || !email || input.password.length < 6) {
-        return { ok: false, error: "Name, email and a password of at least 6 characters are required." };
+  const createAccount = useCallback<Ctx["createAccount"]>((input) => {
+    const email = input.email.trim().toLowerCase();
+    const name = input.name.trim();
+    if (!name) return { ok: false, error: "Please enter the person's full name." };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Please enter a valid email address." };
+    if (input.password.length < 6) return { ok: false, error: "The password needs at least 6 characters." };
+
+    const account: Account = {
+      id: uid(),
+      name,
+      email,
+      password: input.password,
+      role: input.role,
+      school: input.school.trim(),
+      ...(input.phone ? { phone: input.phone.trim() } : {}),
+      createdAt: Date.now(),
+      active: true,
+    };
+
+    // Duplicate check happens inside the updater so rapid double-submits can
+    // never create two accounts with the same email.
+    let duplicate = false;
+    setData((d) => {
+      if (d.accounts.some((a) => a.email.toLowerCase() === email)) {
+        duplicate = true;
+        return d;
       }
-      if (data.accounts.some((a) => a.email.toLowerCase() === email)) {
-        return { ok: false, error: "An account with that email already exists." };
-      }
-      const account: Account = {
-        id: uid(),
-        name: input.name.trim(),
-        email,
-        password: input.password,
-        role: input.role,
-        school: input.school.trim(),
-        ...(input.phone ? { phone: input.phone } : {}),
-        createdAt: Date.now(),
-        active: true,
-      };
-      setData((d) => ({ ...d, accounts: [...d.accounts, account] }));
-      return { ok: true, account };
-    },
-    [data.accounts],
-  );
+      return { ...d, accounts: [...d.accounts, account] };
+    });
+    if (duplicate) return { ok: false, error: "An account with that email already exists." };
+    return { ok: true, account };
+  }, []);
 
   const createOperator = useCallback<Ctx["createOperator"]>(
     (input) => createAccount({ ...input, role: "operator" }),
     [createAccount],
   );
+
 
   const toggleAccount = useCallback((id: string) => {
     setData((d) => ({
