@@ -88,7 +88,7 @@ function Home() {
 
   const hero = (
     <div className="card p-0">
-      <div className="relative px-md pb-md pt-5">
+      <div className="relative px-md pb-md pt-8">
         <span className="absolute left-0 top-0 rounded-br-lg rounded-tl-lg bg-secondary-container px-3 py-1 text-[11px] font-bold text-on-secondary-container">
           Cash at Hand
         </span>

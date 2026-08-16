@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Icon } from "./Icon";
-import logoReversed from "@/assets/logo-reversed.png.asset.json";
+import logoStacked from "@/assets/logo-stacked.png.asset.json";
 
 const bottomNav = [
   { to: "/", icon: "home", label: "Home" },
@@ -50,7 +50,11 @@ export function AppLayout({
                 <Icon name="arrow_back" />
               </Link>
             ) : (
-              <img src={logoReversed.url} alt="SmartCanteen" className="h-8 w-8 shrink-0 object-contain" />
+              <img
+                src={logoStacked.url}
+                alt="SmartCanteen"
+                className="h-9 w-9 shrink-0 rounded-full bg-surface object-cover"
+              />
             )}
             <h1 className="truncate text-lg font-bold text-on-primary">{title}</h1>
           </div>
