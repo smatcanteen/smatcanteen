@@ -25,6 +25,8 @@ import { Route as StockInRouteImport } from './routes/stock-in'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as TermCapitalRouteImport } from './routes/term-capital'
 import { Route as TermTransitionRouteImport } from './routes/term-transition'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAccountsRouteImport } from './routes/admin.accounts'
 import { Route as PayCategoryRouteImport } from './routes/pay.$category'
 
 const IndexRoute = IndexRouteImport.update({
@@ -107,6 +109,16 @@ const TermTransitionRoute = TermTransitionRouteImport.update({
   path: '/term-transition',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAccountsRoute = AdminAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PayCategoryRoute = PayCategoryRouteImport.update({
   id: '/pay/$category',
   path: '/pay/$category',
@@ -115,7 +127,7 @@ const PayCategoryRoute = PayCategoryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -130,11 +142,12 @@ export interface FileRoutesByFullPath {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/admin/accounts': typeof AdminAccountsRoute
   '/pay/$category': typeof PayCategoryRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -149,12 +162,14 @@ export interface FileRoutesByTo {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/admin/accounts': typeof AdminAccountsRoute
   '/pay/$category': typeof PayCategoryRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -169,7 +184,9 @@ export interface FileRoutesById {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/admin/accounts': typeof AdminAccountsRoute
   '/pay/$category': typeof PayCategoryRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,11 +207,12 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/admin/accounts'
     | '/pay/$category'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -209,7 +227,9 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/admin/accounts'
     | '/pay/$category'
+    | '/admin'
   id:
     | '__root__'
     | '/'
@@ -228,12 +248,14 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/admin/accounts'
     | '/pay/$category'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CloseOutRoute: typeof CloseOutRoute
   DebtorsRoute: typeof DebtorsRoute
   ExpenseRoute: typeof ExpenseRoute
@@ -365,6 +387,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermTransitionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/accounts': {
+      id: '/admin/accounts'
+      path: '/accounts'
+      fullPath: '/admin/accounts'
+      preLoaderRoute: typeof AdminAccountsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/pay/$category': {
       id: '/pay/$category'
       path: '/pay/$category'
@@ -375,9 +411,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminAccountsRoute: typeof AdminAccountsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAccountsRoute: AdminAccountsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   CloseOutRoute: CloseOutRoute,
   DebtorsRoute: DebtorsRoute,
   ExpenseRoute: ExpenseRoute,
