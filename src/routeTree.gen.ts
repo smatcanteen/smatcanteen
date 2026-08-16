@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CloseOutRouteImport } from './routes/close-out'
 import { Route as DebtorsRouteImport } from './routes/debtors'
 import { Route as ExpenseRouteImport } from './routes/expense'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ReportRouteImport } from './routes/report'
@@ -24,6 +25,7 @@ import { Route as StockInRouteImport } from './routes/stock-in'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as TermCapitalRouteImport } from './routes/term-capital'
 import { Route as TermTransitionRouteImport } from './routes/term-transition'
+import { Route as PayCategoryRouteImport } from './routes/pay.$category'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -48,6 +50,11 @@ const DebtorsRoute = DebtorsRouteImport.update({
 const ExpenseRoute = ExpenseRouteImport.update({
   id: '/expense',
   path: '/expense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -100,6 +107,11 @@ const TermTransitionRoute = TermTransitionRouteImport.update({
   path: '/term-transition',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayCategoryRoute = PayCategoryRouteImport.update({
+  id: '/pay/$category',
+  path: '/pay/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
@@ -117,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/pay/$category': typeof PayCategoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +138,7 @@ export interface FileRoutesByTo {
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
@@ -134,6 +149,7 @@ export interface FileRoutesByTo {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/pay/$category': typeof PayCategoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,6 +158,7 @@ export interface FileRoutesById {
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
@@ -152,6 +169,7 @@ export interface FileRoutesById {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/pay/$category': typeof PayCategoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +179,7 @@ export interface FileRouteTypes {
     | '/close-out'
     | '/debtors'
     | '/expense'
+    | '/history'
     | '/login'
     | '/onboarding'
     | '/report'
@@ -171,6 +190,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/pay/$category'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +198,7 @@ export interface FileRouteTypes {
     | '/close-out'
     | '/debtors'
     | '/expense'
+    | '/history'
     | '/login'
     | '/onboarding'
     | '/report'
@@ -188,6 +209,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/pay/$category'
   id:
     | '__root__'
     | '/'
@@ -195,6 +217,7 @@ export interface FileRouteTypes {
     | '/close-out'
     | '/debtors'
     | '/expense'
+    | '/history'
     | '/login'
     | '/onboarding'
     | '/report'
@@ -205,6 +228,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/pay/$category'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +237,7 @@ export interface RootRouteChildren {
   CloseOutRoute: typeof CloseOutRoute
   DebtorsRoute: typeof DebtorsRoute
   ExpenseRoute: typeof ExpenseRoute
+  HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   ReportRoute: typeof ReportRoute
@@ -223,6 +248,7 @@ export interface RootRouteChildren {
   SubscriptionRoute: typeof SubscriptionRoute
   TermCapitalRoute: typeof TermCapitalRoute
   TermTransitionRoute: typeof TermTransitionRoute
+  PayCategoryRoute: typeof PayCategoryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -260,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/expense'
       fullPath: '/expense'
       preLoaderRoute: typeof ExpenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -332,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermTransitionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$category': {
+      id: '/pay/$category'
+      path: '/pay/$category'
+      fullPath: '/pay/$category'
+      preLoaderRoute: typeof PayCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -341,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   CloseOutRoute: CloseOutRoute,
   DebtorsRoute: DebtorsRoute,
   ExpenseRoute: ExpenseRoute,
+  HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   ReportRoute: ReportRoute,
@@ -351,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscriptionRoute: SubscriptionRoute,
   TermCapitalRoute: TermCapitalRoute,
   TermTransitionRoute: TermTransitionRoute,
+  PayCategoryRoute: PayCategoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

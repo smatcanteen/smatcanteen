@@ -16,16 +16,26 @@ export type Tx = {
   label: string;
   amount: number;
   category?: string;
+  /** Optional item breakdown for itemised sales. */
+  lines?: { itemId: string; name: string; qty: number }[];
   ts: number;
 };
 
 export type StockItem = {
   id: string;
   name: string;
+  /** Total units bought this term. */
   qty: number;
+  /** Units still on the shelf. */
   stock: number;
+  /** Total buying price paid. */
   buy: number;
+  /** Selling price per unit. */
   sell: number;
+  /** How the item is sold, e.g. "Piece", "Crate of 24". */
+  pack?: string;
+  /** Units contained in one package (1 = sold as ones). */
+  unitsPerPack?: number;
 };
 
 export type Debtor = {
@@ -40,61 +50,159 @@ export type Debtor = {
 
 export type Payment = { id: string; amount: number; note: string; ts: number };
 
+export type ExpenseCategory = { id: string; label: string; icon: string };
+
+export type TermRecord = {
+  id: string;
+  name: string;
+  capital: number;
+  target: number;
+  startedAt: number;
+  closedAt: number;
+  sales: number;
+  expenses: number;
+  stockSpend: number;
+  profit: number;
+  txs: Tx[];
+  items: StockItem[];
+};
+
 export type State = {
   termName: string;
+  termStartedAt: number;
   pin: string | null;
   autoLockMin: number;
+  theme: "light" | "dark";
+  fontScale: number;
   payments: Payment[];
   capital: number;
+  /** Money the operator wants to be holding by the end of the term. */
   savingsGoal: number;
   items: StockItem[];
   txs: Tx[];
   debtors: Debtor[];
+  expenseCategories: ExpenseCategory[];
+  terms: TermRecord[];
 };
 
 const STORAGE_KEY = "smartcanteen.v2";
 
+/** Deterministic timestamps so server and client render the same demo data. */
+const ANCHOR = Date.UTC(2026, 7, 14, 9, 0, 0);
+const days = (n: number) => ANCHOR - n * 86400000;
+
+export const defaultExpenseCategories: ExpenseCategory[] = [
+  { id: "c1", label: "Transport", icon: "local_shipping" },
+  { id: "c2", label: "Salary/Wages", icon: "badge" },
+  { id: "c3", label: "Allowances", icon: "volunteer_activism" },
+  { id: "c4", label: "Rent", icon: "home_work" },
+  { id: "c5", label: "Foodstuffs", icon: "restaurant" },
+  { id: "c6", label: "Cooking Gas", icon: "propane_tank" },
+  { id: "c7", label: "Water", icon: "water_drop" },
+  { id: "c8", label: "Packaging", icon: "inventory_2" },
+  { id: "c9", label: "Utensils/Repairs", icon: "handyman" },
+  { id: "c10", label: "Airtime", icon: "smartphone" },
+  { id: "c11", label: "Data", icon: "wifi" },
+  { id: "c12", label: "Miscellaneous", icon: "more_horiz" },
+];
+
 const seed: State = {
   termName: "Term 2, 2026",
+  termStartedAt: days(10),
   pin: null,
   autoLockMin: 5,
+  theme: "light",
+  fontScale: 1,
   payments: [],
   capital: 473000,
-  savingsGoal: 200000,
+  savingsGoal: 900000,
+  expenseCategories: defaultExpenseCategories,
   items: [
-    { id: "i1", name: "Mandazi", qty: 200, stock: 148, buy: 40000, sell: 500 },
-    { id: "i2", name: "Soda (300ml)", qty: 96, stock: 61, buy: 96000, sell: 1500 },
-    { id: "i3", name: "Water Bottle", qty: 120, stock: 84, buy: 72000, sell: 1000 },
+    { id: "i1", name: "Mandazi", qty: 200, stock: 148, buy: 40000, sell: 500, pack: "Piece", unitsPerPack: 1 },
+    { id: "i2", name: "Soda (300ml)", qty: 96, stock: 61, buy: 96000, sell: 1500, pack: "Crate of 24", unitsPerPack: 24 },
+    { id: "i3", name: "Water Bottle", qty: 120, stock: 84, buy: 72000, sell: 1000, pack: "Box of 12", unitsPerPack: 12 },
   ],
   txs: [
-    { id: "t0", type: "capital", label: "Opening term capital", amount: 473000, ts: Date.now() - 86400000 * 9 },
-    { id: "t1", type: "stock", label: "Mandazi restock", amount: 40000, ts: Date.now() - 86400000 * 8 },
-    { id: "t2", type: "stock", label: "Soda (300ml) restock", amount: 96000, ts: Date.now() - 86400000 * 8 },
-    { id: "t3", type: "stock", label: "Water Bottle restock", amount: 72000, ts: Date.now() - 86400000 * 8 },
-    { id: "t4", type: "sale", label: "Cash sale", amount: 86000, ts: Date.now() - 86400000 * 2 },
-    { id: "t5", type: "expense", label: "Transport", category: "Transport", amount: 15000, ts: Date.now() - 86400000 },
-    { id: "t6", type: "sale", label: "Cash sale", amount: 120000, ts: Date.now() - 3600000 * 5 },
-    { id: "t7", type: "expense", label: "Allowance — Sarah", category: "Allowances", amount: 30000, ts: Date.now() - 3600000 * 3 },
+    { id: "t0", type: "capital", label: "Opening term capital", amount: 473000, ts: days(9) },
+    { id: "t1", type: "stock", label: "Mandazi restock", amount: 40000, ts: days(8) },
+    { id: "t2", type: "stock", label: "Soda (300ml) restock", amount: 96000, ts: days(8) },
+    { id: "t3", type: "stock", label: "Water Bottle restock", amount: 72000, ts: days(8) },
+    { id: "t4", type: "sale", label: "Cash sale", amount: 86000, ts: days(2) },
+    { id: "t5", type: "expense", label: "Transport", category: "Transport", amount: 15000, ts: days(1) },
+    { id: "t6", type: "sale", label: "Cash sale", amount: 120000, ts: days(1) + 3600000 },
+    { id: "t7", type: "expense", label: "Allowance — Sarah", category: "Allowances", amount: 30000, ts: days(1) + 7200000 },
   ],
   debtors: [
-    { id: "d1", name: "Brian Okello", klass: "S3 East", item: "Soda & Mandazi", amount: 4500, paid: false, ts: Date.now() - 86400000 * 6 },
-    { id: "d2", name: "Aisha Nakato", klass: "S1 West", item: "Water Bottle", amount: 2000, paid: false, ts: Date.now() - 86400000 * 2 },
+    { id: "d1", name: "Brian Okello", klass: "S3 East", item: "Soda & Mandazi", amount: 4500, paid: false, ts: days(6) },
+    { id: "d2", name: "Aisha Nakato", klass: "S1 West", item: "Water Bottle", amount: 2000, paid: false, ts: days(2) },
+  ],
+  terms: [
+    {
+      id: "term-1",
+      name: "Term 1, 2026",
+      capital: 400000,
+      target: 800000,
+      startedAt: days(160),
+      closedAt: days(95),
+      sales: 1420000,
+      expenses: 310000,
+      stockSpend: 760000,
+      profit: 350000,
+      txs: [
+        { id: "p1", type: "capital", label: "Opening term capital", amount: 400000, ts: days(160) },
+        { id: "p2", type: "stock", label: "Mandazi restock", amount: 260000, ts: days(158) },
+        { id: "p3", type: "stock", label: "Soda (300ml) restock", amount: 300000, ts: days(150) },
+        { id: "p4", type: "stock", label: "Water Bottle restock", amount: 200000, ts: days(140) },
+        { id: "p5", type: "sale", label: "Cash sales (week 1-4)", amount: 720000, ts: days(130) },
+        { id: "p6", type: "sale", label: "Cash sales (week 5-8)", amount: 700000, ts: days(105) },
+        { id: "p7", type: "expense", label: "Transport", category: "Transport", amount: 120000, ts: days(120) },
+        { id: "p8", type: "expense", label: "Salary/Wages", category: "Salary/Wages", amount: 150000, ts: days(110) },
+        { id: "p9", type: "expense", label: "Cooking Gas", category: "Cooking Gas", amount: 40000, ts: days(100) },
+      ],
+      items: [
+        { id: "pi1", name: "Mandazi", qty: 600, stock: 20, buy: 260000, sell: 500, pack: "Piece", unitsPerPack: 1 },
+        { id: "pi2", name: "Soda (300ml)", qty: 240, stock: 12, buy: 300000, sell: 1500, pack: "Crate of 24", unitsPerPack: 24 },
+      ],
+    },
   ],
 };
 
 type Ctx = {
   state: State;
+  hydrated: boolean;
   cashAtHand: number;
+  shelfValueAtCost: number;
+  /** Cash + shelf stock minus what the term started with. */
+  termProfit: number;
   totals: { sales: number; expenses: number; stock: number };
   today: { sales: number; expenses: number; net: number };
-  addTx: (tx: Omit<Tx, "id" | "ts">) => void;
-  addStockItems: (entries: { name: string; qty: number; buy: number; sell: number }[]) => void;
+  addTx: (tx: Omit<Tx, "id" | "ts"> & { ts?: number }) => void;
+  sellItems: (
+    picked: { itemId: string; qty: number }[],
+    opts?: { ts?: number; credit?: boolean },
+  ) => { label: string; total: number };
+  addStockItems: (
+    entries: {
+      name: string;
+      qty: number;
+      buy: number;
+      sell: number;
+      pack?: string;
+      unitsPerPack?: number;
+      ts?: number;
+    }[],
+  ) => void;
   setCapital: (amount: number, termName: string, goal: number) => void;
   settleDebtor: (id: string) => void;
   addDebtor: (d: Omit<Debtor, "id" | "ts" | "paid">) => void;
   undoLast: () => void;
   setPin: (pin: string | null, autoLockMin: number) => void;
   addPayment: (amount: number, note: string) => void;
+  addExpenseCategory: (label: string, icon: string) => void;
+  removeExpenseCategory: (id: string) => void;
+  setTheme: (theme: "light" | "dark") => void;
+  setFontScale: (scale: number) => void;
+  archiveTerm: (newTermName: string, carryCash: number, target: number) => void;
   restoreState: (next: State) => void;
   clearAll: () => void;
 };
@@ -106,6 +214,7 @@ const isToday = (ts: number) => new Date(ts).toDateString() === new Date().toDat
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>(seed);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
@@ -114,42 +223,108 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       /* ignore */
     }
-  }, [state]);
+  }, [state, hydrated]);
 
-  const addTx = useCallback((tx: Omit<Tx, "id" | "ts">) => {
-    setState((s) => ({ ...s, txs: [...s.txs, { ...tx, id: uid(), ts: Date.now() }] }));
+  // Theme + font scale live on <html> so every screen follows them.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", state.theme === "dark");
+    document.documentElement.style.fontSize = `${Math.round(state.fontScale * 100)}%`;
+  }, [state.theme, state.fontScale]);
+
+  const addTx = useCallback((tx: Omit<Tx, "id" | "ts"> & { ts?: number }) => {
+    setState((s) => ({
+      ...s,
+      txs: [...s.txs, { ...tx, id: uid(), ts: tx.ts ?? Date.now() }],
+    }));
   }, []);
 
-  const addStockItems = useCallback(
-    (entries: { name: string; qty: number; buy: number; sell: number }[]) => {
-      setState((s) => {
-        const items = [...s.items];
-        const txs = [...s.txs];
-        for (const e of entries) {
-          const existing = items.find((i) => i.name.toLowerCase() === e.name.toLowerCase());
-          if (existing) {
-            existing.qty += e.qty;
-            existing.stock += e.qty;
-            existing.buy = e.buy;
-            existing.sell = e.sell;
-          } else {
-            items.push({ id: uid(), name: e.name, qty: e.qty, stock: e.qty, buy: e.buy, sell: e.sell });
-          }
-          txs.push({ id: uid(), type: "stock", label: `${e.name} restock`, amount: e.buy, ts: Date.now() });
+  const sellItems = useCallback<Ctx["sellItems"]>((picked, opts) => {
+    let label = "";
+    let total = 0;
+    setState((s) => {
+      const items = s.items.map((i) => ({ ...i }));
+      const lines: NonNullable<Tx["lines"]> = [];
+      for (const p of picked) {
+        const it = items.find((i) => i.id === p.itemId);
+        if (!it || p.qty <= 0) continue;
+        const qty = Math.min(p.qty, it.stock);
+        it.stock -= qty;
+        total += it.sell * qty;
+        lines.push({ itemId: it.id, name: it.name, qty });
+      }
+      label = lines.map((l) => `${l.name} x${l.qty}`).join(", ") || "Cash sale";
+      if (opts?.credit) return { ...s, items };
+      return {
+        ...s,
+        items,
+        txs: [
+          ...s.txs,
+          { id: uid(), type: "sale" as TxType, label, amount: total, lines, ts: opts?.ts ?? Date.now() },
+        ],
+      };
+    });
+    // Recompute synchronously for the caller (state updates are async).
+    const snapshot = picked.reduce(
+      (acc, p) => {
+        const it = state.items.find((i) => i.id === p.itemId);
+        if (!it || p.qty <= 0) return acc;
+        const qty = Math.min(p.qty, it.stock);
+        acc.total += it.sell * qty;
+        acc.parts.push(`${it.name} x${qty}`);
+        return acc;
+      },
+      { total: 0, parts: [] as string[] },
+    );
+    return { label: snapshot.parts.join(", ") || "Cash sale", total: snapshot.total };
+  }, [state.items]);
+
+  const addStockItems = useCallback<Ctx["addStockItems"]>((entries) => {
+    setState((s) => {
+      const items = s.items.map((i) => ({ ...i }));
+      const txs = [...s.txs];
+      for (const e of entries) {
+        const existing = items.find((i) => i.name.toLowerCase() === e.name.toLowerCase());
+        if (existing) {
+          existing.qty += e.qty;
+          existing.stock += e.qty;
+          existing.buy += e.buy;
+          existing.sell = e.sell;
+          if (e.pack) existing.pack = e.pack;
+          if (e.unitsPerPack) existing.unitsPerPack = e.unitsPerPack;
+        } else {
+          items.push({
+            id: uid(),
+            name: e.name,
+            qty: e.qty,
+            stock: e.qty,
+            buy: e.buy,
+            sell: e.sell,
+            pack: e.pack ?? "Piece",
+            unitsPerPack: e.unitsPerPack ?? 1,
+          });
         }
-        return { ...s, items, txs };
-      });
-    },
-    [],
-  );
+        txs.push({
+          id: uid(),
+          type: "stock",
+          label: `${e.name} restock`,
+          amount: e.buy,
+          ts: e.ts ?? Date.now(),
+        });
+      }
+      return { ...s, items, txs };
+    });
+  }, []);
 
   const setCapital = useCallback((amount: number, termName: string, goal: number) => {
     setState((s) => ({
@@ -192,10 +367,55 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addPayment = useCallback((amount: number, note: string) => {
-    setState((s) => ({
-      ...s,
-      payments: [...s.payments, { id: uid(), amount, note, ts: Date.now() }],
-    }));
+    setState((s) => ({ ...s, payments: [...s.payments, { id: uid(), amount, note, ts: Date.now() }] }));
+  }, []);
+
+  const addExpenseCategory = useCallback((label: string, icon: string) => {
+    setState((s) =>
+      s.expenseCategories.some((c) => c.label.toLowerCase() === label.toLowerCase())
+        ? s
+        : { ...s, expenseCategories: [...s.expenseCategories, { id: uid(), label, icon }] },
+    );
+  }, []);
+
+  const removeExpenseCategory = useCallback((id: string) => {
+    setState((s) => ({ ...s, expenseCategories: s.expenseCategories.filter((c) => c.id !== id) }));
+  }, []);
+
+  const setTheme = useCallback((theme: "light" | "dark") => setState((s) => ({ ...s, theme })), []);
+  const setFontScale = useCallback((fontScale: number) => setState((s) => ({ ...s, fontScale })), []);
+
+  const archiveTerm = useCallback((newTermName: string, carryCash: number, target: number) => {
+    setState((s) => {
+      const sales = s.txs.filter((t) => t.type === "sale").reduce((a, t) => a + t.amount, 0);
+      const expenses = s.txs.filter((t) => t.type === "expense").reduce((a, t) => a + t.amount, 0);
+      const stockSpend = s.txs.filter((t) => t.type === "stock").reduce((a, t) => a + t.amount, 0);
+      const record: TermRecord = {
+        id: uid(),
+        name: s.termName,
+        capital: s.capital,
+        target: s.savingsGoal,
+        startedAt: s.termStartedAt,
+        closedAt: Date.now(),
+        sales,
+        expenses,
+        stockSpend,
+        profit: sales - expenses - stockSpend,
+        txs: s.txs,
+        items: s.items,
+      };
+      return {
+        ...s,
+        terms: [...s.terms, record],
+        termName: newTermName,
+        termStartedAt: Date.now(),
+        capital: carryCash,
+        savingsGoal: target,
+        txs: [{ id: uid(), type: "capital", label: "Opening term capital", amount: carryCash, ts: Date.now() }],
+        items: s.items.filter((i) => i.stock > 0).map((i) => ({ ...i, qty: i.stock })),
+        debtors: s.debtors.filter((d) => !d.paid),
+      };
+    });
   }, []);
 
   const restoreState = useCallback((next: State) => {
@@ -204,14 +424,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearAll = useCallback(() => {
     // Wipes the cash book only: entries, stock, debtors and capital.
-    // Keeps your PIN, auto-lock, term name, savings goal and subscription payments.
-    setState((s) => ({
-      ...s,
-      txs: [],
-      debtors: [],
-      items: [],
-      capital: 0,
-    }));
+    // Keeps PIN, auto-lock, term name, goal, categories, terms history and payments.
+    setState((s) => ({ ...s, txs: [], debtors: [], items: [], capital: 0 }));
   }, []);
 
   const value = useMemo<Ctx>(() => {
@@ -221,19 +435,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (tx.type === "sale") t.sales += tx.amount;
       if (tx.type === "expense") t.expenses += tx.amount;
       if (tx.type === "stock") t.stock += tx.amount;
-      if (isToday(tx.ts)) {
+      if (hydrated && isToday(tx.ts)) {
         if (tx.type === "sale") day.sales += tx.amount;
         if (tx.type === "expense" || tx.type === "stock") day.expenses += tx.amount;
       }
     }
     day.net = day.sales - day.expenses;
     const capital = state.txs.find((x) => x.type === "capital")?.amount ?? state.capital;
+    const cashAtHand = capital + t.sales - t.expenses - t.stock;
+    const shelfValueAtCost = state.items.reduce(
+      (a, i) => a + (i.qty ? (i.buy / i.qty) * i.stock : 0),
+      0,
+    );
     return {
       state,
-      cashAtHand: capital + t.sales - t.expenses - t.stock,
+      hydrated,
+      cashAtHand,
+      shelfValueAtCost,
+      termProfit: cashAtHand + shelfValueAtCost - capital,
       totals: t,
       today: day,
       addTx,
+      sellItems,
       addStockItems,
       setCapital,
       settleDebtor,
@@ -241,12 +464,47 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       undoLast,
       setPin,
       addPayment,
+      addExpenseCategory,
+      removeExpenseCategory,
+      setTheme,
+      setFontScale,
+      archiveTerm,
       restoreState,
       clearAll,
     };
-  }, [state, addTx, addStockItems, setCapital, settleDebtor, addDebtor, undoLast, setPin, addPayment, restoreState, clearAll]);
+  }, [
+    state,
+    hydrated,
+    addTx,
+    sellItems,
+    addStockItems,
+    setCapital,
+    settleDebtor,
+    addDebtor,
+    undoLast,
+    setPin,
+    addPayment,
+    addExpenseCategory,
+    removeExpenseCategory,
+    setTheme,
+    setFontScale,
+    archiveTerm,
+    restoreState,
+    clearAll,
+  ]);
 
-  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+  return (
+    <StoreContext.Provider value={value}>
+      {hydrated ? (
+        children
+      ) : (
+        // Data lives on the device, so the shell waits for it before painting numbers.
+        <div className="flex min-h-screen items-center justify-center bg-primary">
+          <span className="text-sm font-semibold text-on-primary/80">Loading SmartCanteen…</span>
+        </div>
+      )}
+    </StoreContext.Provider>
+  );
 }
 
 export function useStore() {
@@ -258,3 +516,12 @@ export function useStore() {
 export const ugx = (n: number) => new Intl.NumberFormat("en-UG").format(Math.round(n));
 export const shortUgx = (n: number) =>
   Math.abs(n) >= 1000 ? `${Math.round(n / 1000)}K` : `${Math.round(n)}`;
+export const dateInput = (ts: number) => {
+  const d = new Date(ts);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+export const fromDateInput = (v: string) => {
+  const ts = new Date(`${v}T12:00:00`).getTime();
+  return Number.isNaN(ts) ? Date.now() : ts;
+};

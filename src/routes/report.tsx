@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
 import { Card, SectionTitle } from "@/components/ui-kit";
 import { ugx, useStore } from "@/lib/store";
+import { exportExcel, exportPdf, type Sheet } from "@/lib/export";
 
 export const Route = createFileRoute("/report")({
   head: () => ({
@@ -46,6 +47,38 @@ function Report() {
         return acc;
       }, {}),
   ).sort((a, b) => b[1] - a[1]);
+
+  const sheets: Sheet[] = [
+    {
+      name: `Balance sheet (${range})`,
+      columns: ["Line", "Amount (UGX)"],
+      rows: [
+        ["Opening balance", opening],
+        ["Plus sales", sales],
+        ["Less stock purchases", -stock],
+        ["Less other expenses", -expenses],
+        ["Closing balance", closing],
+      ],
+      summary: [
+        ["Term", state.termName],
+        ["Range", range],
+        ["Outstanding credit", `UGX ${ugx(outstanding)}`],
+      ],
+    },
+    {
+      name: "Entries",
+      columns: ["Date", "Type", "Description", "Category", "Amount (UGX)"],
+      rows: [...inRange]
+        .sort((a, b) => b.ts - a.ts)
+        .map((t) => [
+          new Date(t.ts).toLocaleDateString("en-GB"),
+          t.type,
+          t.label,
+          t.category ?? "",
+          t.amount,
+        ]),
+    },
+  ];
 
   return (
     <AppLayout title="Reports">
@@ -116,14 +149,14 @@ function Report() {
         </div>
         <div className="flex flex-wrap gap-sm">
           <button
-            onClick={() => window.print()}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-md bg-primary font-bold text-on-primary"
+            onClick={() => exportPdf(`${state.termName} — ${range} report`, `Generated for ${state.termName}`, sheets)}
+            className="flex h-12 min-h-12 flex-1 items-center justify-center gap-2 rounded-md bg-primary font-bold text-on-primary"
           >
             <Icon name="picture_as_pdf" /> Export PDF
           </button>
           <button
-            onClick={() => window.print()}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-md bg-secondary-container font-bold text-on-secondary-container"
+            onClick={() => exportExcel("smartcanteen-report", sheets, `SmartCanteen — ${state.termName} (${range})`)}
+            className="flex h-12 min-h-12 flex-1 items-center justify-center gap-2 rounded-md bg-secondary-container font-bold text-on-secondary-container"
           >
             <Icon name="table_view" /> Export Excel
           </button>
