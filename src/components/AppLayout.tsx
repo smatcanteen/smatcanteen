@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Icon } from "./Icon";
+import logoStacked from "@/assets/logo-stacked.png.asset.json";
 
 const nav = [
   { to: "/", icon: "home", label: "Home" },
@@ -8,7 +9,11 @@ const nav = [
   { to: "/report", icon: "bar_chart", label: "Reports" },
   { to: "/debtors", icon: "group", label: "Credit" },
   { to: "/close-out", icon: "task_alt", label: "Close" },
+  { to: "/subscription", icon: "card_membership", label: "Plan" },
+  { to: "/settings", icon: "settings", label: "Settings" },
 ];
+
+const bottomNav = nav.filter((n) => n.to !== "/subscription");
 
 export function AppLayout({
   title,
@@ -35,9 +40,11 @@ export function AppLayout({
               <Icon name="arrow_back" />
             </Link>
           ) : (
-            <span className="rounded-full bg-primary p-2 text-on-primary">
-              <Icon name="storefront" />
-            </span>
+            <img
+              src={logoStacked.url}
+              alt="SmartCanteen"
+              className="h-9 w-9 rounded-full object-cover"
+            />
           )}
           <h1 className="text-xl font-bold text-primary">{title}</h1>
         </div>
@@ -70,7 +77,7 @@ export function AppLayout({
       </main>
 
       <nav className="fixed bottom-0 left-0 z-50 flex w-full justify-around rounded-t-xl bg-surface-container px-2 py-2 shadow-[0_-2px_10px_rgba(19,82,48,0.1)] md:hidden">
-        {nav.map((n) => {
+        {bottomNav.map((n) => {
           const active = path === n.to;
           return (
             <Link

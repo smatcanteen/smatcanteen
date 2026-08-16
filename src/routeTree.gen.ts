@@ -18,8 +18,10 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as SaleRouteImport } from './routes/sale'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as StockInRouteImport } from './routes/stock-in'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as TermCapitalRouteImport } from './routes/term-capital'
 import { Route as TermTransitionRouteImport } from './routes/term-transition'
 
@@ -68,6 +70,11 @@ const SaleRoute = SaleRouteImport.update({
   path: '/sale',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StockRoute = StockRouteImport.update({
   id: '/stock',
   path: '/stock',
@@ -76,6 +83,11 @@ const StockRoute = StockRouteImport.update({
 const StockInRoute = StockInRouteImport.update({
   id: '/stock-in',
   path: '/stock-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermCapitalRoute = TermCapitalRouteImport.update({
@@ -99,8 +111,10 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
 }
@@ -114,8 +128,10 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
 }
@@ -130,8 +146,10 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
+  '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
 }
@@ -147,8 +165,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/report'
     | '/sale'
+    | '/settings'
     | '/stock'
     | '/stock-in'
+    | '/subscription'
     | '/term-capital'
     | '/term-transition'
   fileRoutesByTo: FileRoutesByTo
@@ -162,8 +182,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/report'
     | '/sale'
+    | '/settings'
     | '/stock'
     | '/stock-in'
+    | '/subscription'
     | '/term-capital'
     | '/term-transition'
   id:
@@ -177,8 +199,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/report'
     | '/sale'
+    | '/settings'
     | '/stock'
     | '/stock-in'
+    | '/subscription'
     | '/term-capital'
     | '/term-transition'
   fileRoutesById: FileRoutesById
@@ -193,8 +217,10 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ReportRoute: typeof ReportRoute
   SaleRoute: typeof SaleRoute
+  SettingsRoute: typeof SettingsRoute
   StockRoute: typeof StockRoute
   StockInRoute: typeof StockInRoute
+  SubscriptionRoute: typeof SubscriptionRoute
   TermCapitalRoute: typeof TermCapitalRoute
   TermTransitionRoute: typeof TermTransitionRoute
 }
@@ -264,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SaleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stock': {
       id: '/stock'
       path: '/stock'
@@ -276,6 +309,13 @@ declare module '@tanstack/react-router' {
       path: '/stock-in'
       fullPath: '/stock-in'
       preLoaderRoute: typeof StockInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/term-capital': {
@@ -305,8 +345,10 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ReportRoute: ReportRoute,
   SaleRoute: SaleRoute,
+  SettingsRoute: SettingsRoute,
   StockRoute: StockRoute,
   StockInRoute: StockInRoute,
+  SubscriptionRoute: SubscriptionRoute,
   TermCapitalRoute: TermCapitalRoute,
   TermTransitionRoute: TermTransitionRoute,
 }

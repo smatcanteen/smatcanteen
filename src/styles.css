@@ -3,37 +3,38 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-background: #fdf9ee;
-  --color-foreground: #1c1c15;
-  --color-surface: #fdf9ee;
+  --color-background: #f5f1e6;
+  --color-foreground: #3a3a3a;
+  --color-surface: #f5f1e6;
   --color-surface-dim: #dddacf;
-  --color-surface-bright: #fdf9ee;
+  --color-surface-bright: #f5f1e6;
   --color-surface-lowest: #ffffff;
   --color-surface-low: #f7f3e8;
   --color-surface-container: #f2eee3;
   --color-surface-high: #ece8dd;
   --color-surface-highest: #e6e2d7;
   --color-surface-variant: #e6e2d7;
-  --color-on-surface: #1c1c15;
+  --color-on-surface: #3a3a3a;
   --color-on-surface-variant: #404941;
   --color-inverse-surface: #323129;
   --color-inverse-on-surface: #f4f0e6;
   --color-outline: #707971;
   --color-outline-variant: #c0c9bf;
 
-  --color-primary: #135230;
+  --color-primary: #2f6b46;
   --color-on-primary: #ffffff;
-  --color-primary-container: #2f6b46;
+  --color-primary-container: #1e4a31;
   --color-on-primary-container: #a9e9bb;
   --color-primary-fixed: #b1f1c2;
   --color-inverse-primary: #96d5a7;
 
-  --color-secondary: #7d5700;
+  --color-secondary: #b8862e;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #ffc55f;
-  --color-on-secondary-container: #755100;
+  --color-secondary-container: #d9a441;
+  --color-on-secondary-container: #4a3308;
   --color-secondary-fixed: #ffdeaa;
 
   --color-tertiary: #822912;
@@ -80,11 +81,21 @@
   h1,
   h2,
   h3 {
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  button {
+    font-family: var(--font-display);
   }
 }
 
+@utility font-display {
+  font-family: var(--font-display);
+}
+
 @utility price-display {
+  font-family: var(--font-display);
   font-size: 28px;
   line-height: 36px;
   font-weight: 700;

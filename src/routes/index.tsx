@@ -170,6 +170,8 @@ function Home() {
           { to: "/term-transition", icon: "event_repeat", label: "Close term & carry forward" },
           { to: "/onboarding", icon: "rocket_launch", label: "Set up a new canteen" },
           { to: "/admin", icon: "admin_panel_settings", label: "Admin overview" },
+          { to: "/subscription", icon: "card_membership", label: "Subscription & payments" },
+          { to: "/settings", icon: "settings", label: "Privacy lock, backup & restore" },
         ].map((c) => (
 
           <Link
