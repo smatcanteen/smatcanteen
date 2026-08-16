@@ -28,8 +28,11 @@ import { Route as TermTransitionRouteImport } from './routes/term-transition'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAccountsRouteImport } from './routes/admin.accounts'
 import { Route as AdminAgentsRouteImport } from './routes/admin.agents'
+import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
+import { Route as AdminCommissionsRouteImport } from './routes/admin.commissions'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminNewRouteImport } from './routes/admin.new'
+import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as PayCategoryRouteImport } from './routes/pay.$category'
 
 const IndexRoute = IndexRouteImport.update({
@@ -127,6 +130,16 @@ const AdminAgentsRoute = AdminAgentsRouteImport.update({
   path: '/agents',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
+  id: '/announcements',
+  path: '/announcements',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommissionsRoute = AdminCommissionsRouteImport.update({
+  id: '/commissions',
+  path: '/commissions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLeadsRoute = AdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -135,6 +148,11 @@ const AdminLeadsRoute = AdminLeadsRouteImport.update({
 const AdminNewRoute = AdminNewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSupportRoute = AdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => AdminRoute,
 } as any)
 const PayCategoryRoute = PayCategoryRouteImport.update({
@@ -162,8 +180,11 @@ export interface FileRoutesByFullPath {
   '/term-transition': typeof TermTransitionRoute
   '/admin/accounts': typeof AdminAccountsRoute
   '/admin/agents': typeof AdminAgentsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/new': typeof AdminNewRoute
+  '/admin/support': typeof AdminSupportRoute
   '/pay/$category': typeof PayCategoryRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -185,8 +206,11 @@ export interface FileRoutesByTo {
   '/term-transition': typeof TermTransitionRoute
   '/admin/accounts': typeof AdminAccountsRoute
   '/admin/agents': typeof AdminAgentsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/new': typeof AdminNewRoute
+  '/admin/support': typeof AdminSupportRoute
   '/pay/$category': typeof PayCategoryRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -210,8 +234,11 @@ export interface FileRoutesById {
   '/term-transition': typeof TermTransitionRoute
   '/admin/accounts': typeof AdminAccountsRoute
   '/admin/agents': typeof AdminAgentsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/new': typeof AdminNewRoute
+  '/admin/support': typeof AdminSupportRoute
   '/pay/$category': typeof PayCategoryRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -236,8 +263,11 @@ export interface FileRouteTypes {
     | '/term-transition'
     | '/admin/accounts'
     | '/admin/agents'
+    | '/admin/announcements'
+    | '/admin/commissions'
     | '/admin/leads'
     | '/admin/new'
+    | '/admin/support'
     | '/pay/$category'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -259,8 +289,11 @@ export interface FileRouteTypes {
     | '/term-transition'
     | '/admin/accounts'
     | '/admin/agents'
+    | '/admin/announcements'
+    | '/admin/commissions'
     | '/admin/leads'
     | '/admin/new'
+    | '/admin/support'
     | '/pay/$category'
     | '/admin'
   id:
@@ -283,8 +316,11 @@ export interface FileRouteTypes {
     | '/term-transition'
     | '/admin/accounts'
     | '/admin/agents'
+    | '/admin/announcements'
+    | '/admin/commissions'
     | '/admin/leads'
     | '/admin/new'
+    | '/admin/support'
     | '/pay/$category'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -444,6 +480,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAgentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/announcements': {
+      id: '/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AdminAnnouncementsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/commissions': {
+      id: '/admin/commissions'
+      path: '/commissions'
+      fullPath: '/admin/commissions'
+      preLoaderRoute: typeof AdminCommissionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/leads': {
       id: '/admin/leads'
       path: '/leads'
@@ -456,6 +506,13 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/admin/new'
       preLoaderRoute: typeof AdminNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/support': {
+      id: '/admin/support'
+      path: '/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AdminSupportRouteImport
       parentRoute: typeof AdminRoute
     }
     '/pay/$category': {
@@ -471,16 +528,22 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAccountsRoute: typeof AdminAccountsRoute
   AdminAgentsRoute: typeof AdminAgentsRoute
+  AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
+  AdminCommissionsRoute: typeof AdminCommissionsRoute
   AdminLeadsRoute: typeof AdminLeadsRoute
   AdminNewRoute: typeof AdminNewRoute
+  AdminSupportRoute: typeof AdminSupportRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAccountsRoute: AdminAccountsRoute,
   AdminAgentsRoute: AdminAgentsRoute,
+  AdminAnnouncementsRoute: AdminAnnouncementsRoute,
+  AdminCommissionsRoute: AdminCommissionsRoute,
   AdminLeadsRoute: AdminLeadsRoute,
   AdminNewRoute: AdminNewRoute,
+  AdminSupportRoute: AdminSupportRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
