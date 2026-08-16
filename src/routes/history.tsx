@@ -132,6 +132,15 @@ function History() {
         </div>
       </section>
 
+      <Card className="space-y-md">
+        <SectionTitle>Compare terms</SectionTitle>
+        <GroupedBars rows={compareRows} series={compareSeries} />
+        <div>
+          <p className="mb-1 label-bold text-on-surface-variant">Profit trend</p>
+          <TrendLine points={compareRows.map((r) => ({ label: r.label, value: r.values["profit"] ?? 0 }))} />
+        </div>
+      </Card>
+
       <Card className="space-y-sm">
         <SectionTitle>Filter entries</SectionTitle>
         <div className="grid gap-sm sm:grid-cols-2 lg:grid-cols-4">
