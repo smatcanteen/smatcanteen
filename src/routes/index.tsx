@@ -33,7 +33,7 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
     label: "FOR YOU",
     tiles: [
       { to: "/sale", icon: "point_of_sale", label: "Cash Sale" },
-      { to: "/stock-in", icon: "local_shipping", label: "Stock In" },
+      { to: "/stock-in", icon: "shopping_cart", label: "Buy Stock" },
       { to: "/expense", icon: "receipt_long", label: "Expense" },
       { to: "/debtors", icon: "group", label: "Credit Book" },
       { to: "/close-out", icon: "task_alt", label: "Close Day" },
