@@ -2,7 +2,7 @@ import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
 import { useAuth, roleLabels, isAdminRole, homeForRole, type Role } from "@/lib/auth";
-import logoReversed from "@/assets/logo-reversed.png.asset.json";
+import { BrandMark } from "./Brand";
 
 export type AdminPerm =
   | "dashboard"
