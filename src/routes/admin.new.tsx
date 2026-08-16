@@ -262,10 +262,13 @@ function NewAccount() {
         </Card>
       )}
 
-      <div className="flex gap-sm">
+      <div className="sticky bottom-0 z-10 -mx-4 flex gap-sm bg-surface-high/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:bg-transparent md:px-0 md:py-0">
         {step > 0 && step < 3 ? (
           <button
-            onClick={() => setStep((x) => x - 1)}
+            onClick={() => {
+              setError("");
+              setStep((x) => x - 1);
+            }}
             className="h-12 flex-1 rounded-md border-2 border-outline-variant font-bold text-on-surface-variant"
           >
             Back
@@ -273,19 +276,20 @@ function NewAccount() {
         ) : null}
         <div className="flex-[2]">
           {step < 2 ? (
-            <PrimaryButton onClick={() => setStep((x) => x + 1)}>
+            <PrimaryButton onClick={next}>
               Continue <Icon name="arrow_forward" />
             </PrimaryButton>
           ) : step === 2 ? (
-            <PrimaryButton tone="cta" onClick={finish}>
-              Create account <Icon name="check" />
+            <PrimaryButton tone="cta" onClick={finish} disabled={busy}>
+              {busy ? "Creating…" : "Create account"} <Icon name="check" />
             </PrimaryButton>
           ) : (
             <PrimaryButton
               onClick={() => {
                 setStep(0);
                 setInvite("");
-                set({ canteenName: "", ownerName: "", email: "", password: "", phone: "" });
+                setError("");
+                set({ canteenName: "", ownerName: "", email: "", password: "", phone: "", csv: "", cloneFrom: "" });
               }}
             >
               Create another
@@ -293,6 +297,7 @@ function NewAccount() {
           )}
         </div>
       </div>
+
     </>
   );
 }
