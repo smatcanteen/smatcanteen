@@ -1,6 +1,7 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
+import { useAuth } from "@/lib/auth";
 import logoStacked from "@/assets/logo-stacked.png.asset.json";
 
 const bottomNav = [
