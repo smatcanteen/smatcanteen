@@ -88,6 +88,31 @@ function History() {
 
   const base = `smartcanteen-${termLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
+  // Visual term-on-term comparison: sales, stock, expenses and profit side by side.
+  const compareSeries = [
+    { key: "sales", label: "Sales", color: "var(--color-primary)" },
+    { key: "stock", label: "Stock", color: "var(--color-secondary)" },
+    { key: "expenses", label: "Expenses", color: "var(--color-tertiary)" },
+    { key: "profit", label: "Profit", color: "var(--color-primary-container)" },
+  ];
+  const compareRows: { label: string; values: Record<string, number> }[] = [
+    ...[...state.terms]
+      .sort((a, b) => a.closedAt - b.closedAt)
+      .map((t) => ({
+        label: t.name,
+        values: { sales: t.sales, stock: t.stockSpend, expenses: t.expenses, profit: t.profit },
+      })),
+    {
+      label: `${state.termName} (now)`,
+      values: {
+        sales: totals.sales,
+        stock: totals.stock,
+        expenses: totals.expenses,
+        profit: totals.sales - totals.stock - totals.expenses,
+      },
+    },
+  ];
+
   return (
     <AppLayout title="Past Terms" back>
       <section className="space-y-sm">
