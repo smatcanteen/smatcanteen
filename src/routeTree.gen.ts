@@ -10,33 +10,154 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CloseOutRouteImport } from './routes/close-out'
+import { Route as DebtorsRouteImport } from './routes/debtors'
+import { Route as ExpenseRouteImport } from './routes/expense'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as SaleRouteImport } from './routes/sale'
+import { Route as StockRouteImport } from './routes/stock'
+import { Route as StockInRouteImport } from './routes/stock-in'
+import { Route as TermCapitalRouteImport } from './routes/term-capital'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CloseOutRoute = CloseOutRouteImport.update({
+  id: '/close-out',
+  path: '/close-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebtorsRoute = DebtorsRouteImport.update({
+  id: '/debtors',
+  path: '/debtors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpenseRoute = ExpenseRouteImport.update({
+  id: '/expense',
+  path: '/expense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaleRoute = SaleRouteImport.update({
+  id: '/sale',
+  path: '/sale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockRoute = StockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockInRoute = StockInRouteImport.update({
+  id: '/stock-in',
+  path: '/stock-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermCapitalRoute = TermCapitalRouteImport.update({
+  id: '/term-capital',
+  path: '/term-capital',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/close-out': typeof CloseOutRoute
+  '/debtors': typeof DebtorsRoute
+  '/expense': typeof ExpenseRoute
+  '/login': typeof LoginRoute
+  '/report': typeof ReportRoute
+  '/sale': typeof SaleRoute
+  '/stock': typeof StockRoute
+  '/stock-in': typeof StockInRoute
+  '/term-capital': typeof TermCapitalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/close-out': typeof CloseOutRoute
+  '/debtors': typeof DebtorsRoute
+  '/expense': typeof ExpenseRoute
+  '/login': typeof LoginRoute
+  '/report': typeof ReportRoute
+  '/sale': typeof SaleRoute
+  '/stock': typeof StockRoute
+  '/stock-in': typeof StockInRoute
+  '/term-capital': typeof TermCapitalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/close-out': typeof CloseOutRoute
+  '/debtors': typeof DebtorsRoute
+  '/expense': typeof ExpenseRoute
+  '/login': typeof LoginRoute
+  '/report': typeof ReportRoute
+  '/sale': typeof SaleRoute
+  '/stock': typeof StockRoute
+  '/stock-in': typeof StockInRoute
+  '/term-capital': typeof TermCapitalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/close-out'
+    | '/debtors'
+    | '/expense'
+    | '/login'
+    | '/report'
+    | '/sale'
+    | '/stock'
+    | '/stock-in'
+    | '/term-capital'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/close-out'
+    | '/debtors'
+    | '/expense'
+    | '/login'
+    | '/report'
+    | '/sale'
+    | '/stock'
+    | '/stock-in'
+    | '/term-capital'
+  id:
+    | '__root__'
+    | '/'
+    | '/close-out'
+    | '/debtors'
+    | '/expense'
+    | '/login'
+    | '/report'
+    | '/sale'
+    | '/stock'
+    | '/stock-in'
+    | '/term-capital'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CloseOutRoute: typeof CloseOutRoute
+  DebtorsRoute: typeof DebtorsRoute
+  ExpenseRoute: typeof ExpenseRoute
+  LoginRoute: typeof LoginRoute
+  ReportRoute: typeof ReportRoute
+  SaleRoute: typeof SaleRoute
+  StockRoute: typeof StockRoute
+  StockInRoute: typeof StockInRoute
+  TermCapitalRoute: typeof TermCapitalRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +169,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/close-out': {
+      id: '/close-out'
+      path: '/close-out'
+      fullPath: '/close-out'
+      preLoaderRoute: typeof CloseOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debtors': {
+      id: '/debtors'
+      path: '/debtors'
+      fullPath: '/debtors'
+      preLoaderRoute: typeof DebtorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expense': {
+      id: '/expense'
+      path: '/expense'
+      fullPath: '/expense'
+      preLoaderRoute: typeof ExpenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sale': {
+      id: '/sale'
+      path: '/sale'
+      fullPath: '/sale'
+      preLoaderRoute: typeof SaleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock': {
+      id: '/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof StockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock-in': {
+      id: '/stock-in'
+      path: '/stock-in'
+      fullPath: '/stock-in'
+      preLoaderRoute: typeof StockInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/term-capital': {
+      id: '/term-capital'
+      path: '/term-capital'
+      fullPath: '/term-capital'
+      preLoaderRoute: typeof TermCapitalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CloseOutRoute: CloseOutRoute,
+  DebtorsRoute: DebtorsRoute,
+  ExpenseRoute: ExpenseRoute,
+  LoginRoute: LoginRoute,
+  ReportRoute: ReportRoute,
+  SaleRoute: SaleRoute,
+  StockRoute: StockRoute,
+  StockInRoute: StockInRoute,
+  TermCapitalRoute: TermCapitalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
