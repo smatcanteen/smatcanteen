@@ -153,6 +153,12 @@ function Admin() {
           <div className="flex items-center justify-between gap-2">
             <SectionTitle>Operator accounts</SectionTitle>
             <button
+              onClick={() => navigate({ to: "/onboarding" })}
+              className="flex min-h-11 items-center gap-1 rounded-full border-2 border-primary px-4 text-sm font-bold text-primary"
+            >
+              <Icon name="rocket_launch" className="text-[18px]" /> Set up canteen
+            </button>
+            <button
               onClick={() => setOpen((o) => !o)}
               className="flex min-h-11 items-center gap-1 rounded-full bg-primary px-4 text-sm font-bold text-on-primary"
             >
