@@ -112,12 +112,12 @@ function Agents() {
 
       <Card className="space-y-sm">
         <SectionTitle>Register an agent (approval required)</SectionTitle>
-        <div className="grid gap-sm sm:grid-cols-2">
-          <Field label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-          <Field label="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
-          <Field label="Email / login" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-          <Field label="Temporary password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
-          <SelectField label="Territory / zone" value={f.territory} onChange={(e) => setF({ ...f, territory: e.target.value })}>
+        <div className="grid gap-sm sm:grid-cols-2 xl:grid-cols-3">
+          <Field label="Full name" value={f.name} onChange={(e) => setF((p) => ({ ...p, name: e.target.value }))} />
+          <Field label="Phone" value={f.phone} onChange={(e) => setF((p) => ({ ...p, phone: e.target.value }))} />
+          <Field label="Email / login" type="email" value={f.email} onChange={(e) => setF((p) => ({ ...p, email: e.target.value }))} />
+          <Field label="Temporary password" value={f.password} onChange={(e) => setF((p) => ({ ...p, password: e.target.value }))} />
+          <SelectField label="Territory / zone" value={f.territory} onChange={(e) => setF((p) => ({ ...p, territory: e.target.value }))}>
             {zones.map((z) => (
               <option key={z} value={z}>
                 {z}
@@ -125,9 +125,11 @@ function Agents() {
             ))}
           </SelectField>
         </div>
+        {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
         {msg ? <p className="text-sm font-semibold text-primary">{msg}</p> : null}
-        <PrimaryButton onClick={register}>
-          <Icon name="person_add" /> Register agent
+        <PrimaryButton onClick={register} disabled={busy}>
+          <Icon name="person_add" /> {busy ? "Registering…" : "Register agent"}
+
         </PrimaryButton>
       </Card>
 
