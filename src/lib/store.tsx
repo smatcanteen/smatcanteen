@@ -203,7 +203,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearAll = useCallback(() => {
-    setState({ ...seed, txs: [], debtors: [], items: [], payments: [], capital: 0 });
+    // Wipes the cash book only: entries, stock, debtors and capital.
+    // Keeps your PIN, auto-lock, term name, savings goal and subscription payments.
+    setState((s) => ({
+      ...s,
+      txs: [],
+      debtors: [],
+      items: [],
+      capital: 0,
+    }));
   }, []);
 
   const value = useMemo<Ctx>(() => {
