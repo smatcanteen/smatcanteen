@@ -29,30 +29,53 @@ function Agents() {
   const { createAccount } = useAuth();
   const [f, setF] = useState({ name: "", phone: "", email: "", territory: zones[0]!, password: "agent1234" });
   const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const avgChurn =
     s.agents.reduce((a, x) => a + agentChurnRate(x.id, s.tenants), 0) / Math.max(1, s.agents.length);
 
   const register = () => {
-    if (!f.name.trim() || !f.email.trim()) return;
+    if (busy) return;
+    const email = f.email.trim().toLowerCase();
+    if (!f.name.trim() || !email) {
+      setError("Full name and login email are required.");
+      return;
+    }
+    if (s.agents.some((a) => a.email.toLowerCase() === email)) {
+      setError("An agent with that email is already registered.");
+      return;
+    }
+    setBusy(true);
     const acc = createAccount({
       name: f.name,
-      email: f.email,
+      email,
       password: f.password,
       school: f.territory,
       phone: f.phone,
       role: "agent",
     });
+    if (!acc.ok || !acc.account) {
+      setError(acc.error ?? "Could not create the agent login.");
+      setMsg("");
+      setBusy(false);
+      return;
+    }
     const agent = addAgent({
-      accountId: acc.account?.id ?? null,
+      accountId: acc.account.id,
       name: f.name.trim(),
-      phone: f.phone,
-      email: f.email.trim().toLowerCase(),
+      phone: f.phone.trim(),
+      email,
       territory: f.territory,
     });
-    setMsg(`${agent.name} registered as Pending. They must pass training before activating paying accounts.`);
-    setF({ ...f, name: "", phone: "", email: "" });
+    setError("");
+    setMsg(
+      `${agent.name} registered as Pending. They can log in with ${email} and must pass training before activating paying accounts.`,
+    );
+    setF((prev) => ({ ...prev, name: "", phone: "", email: "" }));
+    setBusy(false);
   };
+
 
   return (
     <>
