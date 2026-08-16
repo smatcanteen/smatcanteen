@@ -95,17 +95,9 @@ function AgentDashboard() {
   return (
     <div className="min-h-screen bg-surface-high pb-16">
       <div className="bg-primary">
-        <header className="mx-auto flex h-16 w-full max-w-container-max items-center justify-between px-4 md:px-gutter">
-          <div className="flex min-w-0 items-center gap-2">
-            <img src={logoReversed.url} alt="" aria-hidden className="h-9 w-9 rounded-full object-contain" />
-            <div className="min-w-0">
-              <p className="truncate font-bold text-on-primary">Field agent</p>
-              <p className="truncate text-[11px] text-on-primary/70">
-                {me.name} · {me.territory}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
+        <header className="mx-auto flex h-16 w-full max-w-container-max items-center justify-between gap-2 px-3 sm:px-4 md:px-gutter">
+          <BrandLock variant="dark" size="sm" title="Field agent" context={`${me.name} · ${me.territory}`} />
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <button
               onClick={() => setOnline((o) => !o)}
               className="min-h-11 rounded-full px-3 text-xs font-bold text-on-primary/80 hover:bg-on-primary/10"
@@ -124,7 +116,8 @@ function AgentDashboard() {
             </button>
           </div>
         </header>
-        <nav className="mx-auto flex w-full max-w-container-max gap-1 overflow-x-auto px-4 pb-2 md:px-gutter">
+        <nav className="mx-auto flex w-full max-w-container-max gap-1 overflow-x-auto px-3 pb-2 sm:px-4 md:px-gutter [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
           {(["leads", "accounts", "earnings", "training"] as const).map((t) => (
             <button
               key={t}
