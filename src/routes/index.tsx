@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
 import { ugx, shortUgx, useStore } from "@/lib/store";
@@ -25,8 +25,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-
-type Tile = { to: string; icon: string; label: string };
+type Tile = { to: string; icon: string; label: string; params?: Record<string, string> };
 
 const tabs: { id: string; label: string; tiles: Tile[] }[] = [
   {
@@ -56,10 +55,12 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
     label: "MONEY OUT",
     tiles: [
       { to: "/stock-in", icon: "shopping_cart", label: "Buy Stock" },
-      { to: "/expense", icon: "local_taxi", label: "Transport" },
-      { to: "/expense", icon: "badge", label: "Salary" },
-      { to: "/expense", icon: "home_work", label: "Rent" },
-      { to: "/expense", icon: "bolt", label: "Utilities" },
+      { to: "/pay/$category", params: { category: "transport" }, icon: "local_taxi", label: "Transport" },
+      { to: "/pay/$category", params: { category: "salary-wages" }, icon: "badge", label: "Salary" },
+      { to: "/pay/$category", params: { category: "rent" }, icon: "home_work", label: "Rent" },
+      { to: "/pay/$category", params: { category: "airtime" }, icon: "smartphone", label: "Airtime" },
+      { to: "/pay/$category", params: { category: "data" }, icon: "wifi", label: "Data" },
+      { to: "/expense", icon: "more_horiz", label: "Other Expense" },
       { to: "/subscription", icon: "card_membership", label: "Subscription" },
     ],
   },
@@ -68,6 +69,7 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
     label: "MANAGE",
     tiles: [
       { to: "/stock", icon: "inventory", label: "Stock List" },
+      { to: "/history", icon: "history", label: "Past Terms" },
       { to: "/term-capital", icon: "account_balance", label: "Term Capital" },
       { to: "/term-transition", icon: "event_repeat", label: "Close Term" },
       { to: "/onboarding", icon: "rocket_launch", label: "New Canteen" },
@@ -77,14 +79,36 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
   },
 ];
 
+const TAB_KEY = "smartcanteen.tab";
+
 function Home() {
-  const { state, cashAtHand, today, totals } = useStore();
+  const { state, cashAtHand, today, termProfit, shelfValueAtCost } = useStore();
   const [tab, setTab] = useState(tabs[0]!.id);
   const [hide, setHide] = useState(false);
-  const netProfit = totals.sales - totals.expenses;
-  const goalPct = Math.max(0, Math.min(100, Math.round((netProfit / state.savingsGoal) * 100)));
+  const touch = useRef<{ x: number; y: number } | null>(null);
+
+  // Keep the tab the operator was on across refreshes.
+  useEffect(() => {
+    const saved = localStorage.getItem(TAB_KEY);
+    if (saved && tabs.some((t) => t.id === saved)) setTab(saved);
+  }, []);
+  useEffect(() => {
+    localStorage.setItem(TAB_KEY, tab);
+  }, [tab]);
+
+  const index = tabs.findIndex((t) => t.id === tab);
+  const go = (dir: 1 | -1) => {
+    const next = tabs[Math.min(tabs.length - 1, Math.max(0, index + dir))];
+    if (next) setTab(next.id);
+  };
+
+  const capital = state.capital;
+  const goalPct = Math.max(
+    0,
+    Math.min(100, Math.round((cashAtHand / Math.max(1, state.savingsGoal)) * 100)),
+  );
   const recent = [...state.txs].sort((a, b) => b.ts - a.ts).slice(0, 6);
-  const active = tabs.find((t) => t.id === tab)!;
+  const active = tabs[index]!;
 
   const hero = (
     <div className="card p-0">
@@ -94,7 +118,7 @@ function Home() {
         </span>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-outline">{state.termName}</p>
+            <p className="text-xs font-semibold text-on-surface-variant">{state.termName}</p>
             <p className="price-display truncate text-primary">
               {hide ? "UGX ••••••" : `UGX ${ugx(cashAtHand)}`}
             </p>
@@ -107,22 +131,34 @@ function Home() {
             <Icon name={hide ? "visibility" : "visibility_off"} />
           </button>
         </div>
+
         <div className="mt-sm">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-high">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-surface-high">
             <div className="h-full rounded-full bg-secondary-container" style={{ width: `${goalPct}%` }} />
           </div>
-          <p className="mt-1 text-[11px] text-outline">
-            Savings goal {goalPct}% · target UGX {ugx(state.savingsGoal)}
+          <p className="mt-1 text-[11px] text-on-surface-variant">
+            Term goal {goalPct}% · target UGX {ugx(state.savingsGoal)} by term end
           </p>
         </div>
+
+        <div className="mt-sm grid grid-cols-3 gap-2 rounded-lg bg-surface-low p-2 text-center">
+          <Kpi label="Started with" value={`UGX ${shortUgx(capital)}`} />
+          <Kpi label="On shelf" value={`UGX ${shortUgx(shelfValueAtCost)}`} />
+          <Kpi
+            label="Profit so far"
+            value={`UGX ${shortUgx(termProfit)}`}
+            tone={termProfit >= 0 ? "text-primary" : "text-tertiary"}
+          />
+        </div>
       </div>
+
       <div className="grid grid-cols-2 border-t border-outline-variant/50">
-        <Link to="/close-out" className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary hover:bg-surface-low">
+        <Link to="/close-out" className="flex min-h-11 items-center justify-center gap-2 py-3 text-sm font-bold text-primary hover:bg-surface-low">
           <Icon name="task_alt" className="text-[20px]" /> Close Day
         </Link>
         <Link
           to="/report"
-          className="flex items-center justify-center gap-2 border-l border-outline-variant/50 py-3 text-sm font-bold text-primary hover:bg-surface-low"
+          className="flex min-h-11 items-center justify-center gap-2 border-l border-outline-variant/50 py-3 text-sm font-bold text-primary hover:bg-surface-low"
         >
           <Icon name="swap_vert" className="text-[20px]" /> Statements
         </Link>
@@ -133,13 +169,15 @@ function Home() {
   return (
     <AppLayout title="SmartCanteen" hero={hero}>
       <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-        <div className="flex min-w-max gap-1 border-b border-outline-variant/50">
+        <div role="tablist" aria-label="Shortcuts" className="flex min-w-max gap-1 border-b border-outline-variant/50">
           {tabs.map((t) => (
             <button
               key={t.id}
+              role="tab"
+              aria-selected={t.id === tab}
               onClick={() => setTab(t.id)}
-              className={`relative px-3 pb-2 pt-1 text-sm font-bold tracking-wide transition-colors ${
-                t.id === tab ? "text-primary" : "text-outline"
+              className={`relative min-h-11 px-3 pb-2 pt-1 text-xs font-bold tracking-wide transition-colors sm:text-sm ${
+                t.id === tab ? "text-primary" : "text-on-surface-variant"
               }`}
             >
               {t.label}
@@ -151,18 +189,37 @@ function Home() {
         </div>
       </div>
 
-      <section className="grid grid-cols-3 gap-sm">
+      <section
+        className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-sm lg:grid-cols-6"
+        onTouchStart={(e) => {
+          const t = e.touches[0]!;
+          touch.current = { x: t.clientX, y: t.clientY };
+        }}
+        onTouchEnd={(e) => {
+          const start = touch.current;
+          const t = e.changedTouches[0];
+          if (!start || !t) return;
+          const dx = t.clientX - start.x;
+          const dy = t.clientY - start.y;
+          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+          touch.current = null;
+        }}
+      >
         {active.tiles.map((t, i) => (
           <Link
             key={`${t.to}-${i}`}
             to={t.to}
-            className="card flex aspect-square flex-col items-center justify-center gap-2 p-2 text-center transition-transform active:scale-95 hover:bg-surface-low"
+            params={t.params}
+            className="card flex aspect-square flex-col items-center justify-center gap-1.5 p-2 text-center transition-transform active:scale-95 hover:bg-surface-low"
           >
-            <Icon name={t.icon} className="text-[26px] text-primary" />
-            <span className="text-xs font-semibold leading-tight text-on-surface">{t.label}</span>
+            <Icon name={t.icon} className="text-[24px] text-primary sm:text-[26px]" />
+            <span className="text-[11px] font-semibold leading-tight text-on-surface sm:text-xs">{t.label}</span>
           </Link>
         ))}
       </section>
+      <p className="-mt-2 text-center text-[11px] text-on-surface-variant md:hidden">
+        Swipe left or right to change section
+      </p>
 
       <section className="flex items-start gap-sm rounded-lg border border-secondary-container/40 bg-secondary-fixed/40 p-sm">
         <Icon name="lightbulb" className="text-secondary" />
@@ -181,7 +238,7 @@ function Home() {
           { l: "Net", v: today.net, i: "account_balance_wallet", c: "text-primary" },
         ].map((s) => (
           <div key={s.l} className="flex flex-col items-center gap-1">
-            <span className="flex items-center gap-1 text-xs uppercase tracking-wide text-outline">
+            <span className="flex items-center gap-1 text-xs uppercase tracking-wide text-on-surface-variant">
               <Icon name={s.i} className="text-[14px]" /> {s.l}
             </span>
             <span className={`font-bold ${s.c}`}>{shortUgx(s.v)}</span>
@@ -192,7 +249,7 @@ function Home() {
       <section>
         <div className="mb-sm flex items-end justify-between px-1">
           <h2 className="label-bold text-on-surface-variant">Recent transactions</h2>
-          <Link to="/report" className="text-sm font-bold text-primary hover:underline">
+          <Link to="/history" className="text-sm font-bold text-primary hover:underline">
             See all
           </Link>
         </div>
@@ -222,7 +279,7 @@ function Home() {
                   </span>
                   <div className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold text-on-surface">{t.label}</span>
-                    <span className="text-xs text-outline">
+                    <span className="text-xs text-on-surface-variant">
                       {new Date(t.ts).toLocaleString("en-GB", {
                         day: "2-digit",
                         month: "short",
@@ -242,5 +299,14 @@ function Home() {
         </div>
       </section>
     </AppLayout>
+  );
+}
+
+function Kpi({ label, value, tone = "text-on-surface" }: { label: string; value: string; tone?: string }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wide text-on-surface-variant">{label}</p>
+      <p className={`text-sm font-bold ${tone}`}>{value}</p>
+    </div>
   );
 }
