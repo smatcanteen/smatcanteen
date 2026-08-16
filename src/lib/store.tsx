@@ -38,8 +38,13 @@ export type Debtor = {
   ts: number;
 };
 
+export type Payment = { id: string; amount: number; note: string; ts: number };
+
 export type State = {
   termName: string;
+  pin: string | null;
+  autoLockMin: number;
+  payments: Payment[];
   capital: number;
   savingsGoal: number;
   items: StockItem[];
@@ -51,6 +56,9 @@ const STORAGE_KEY = "smartcanteen.v2";
 
 const seed: State = {
   termName: "Term 2, 2026",
+  pin: null,
+  autoLockMin: 5,
+  payments: [],
   capital: 473000,
   savingsGoal: 200000,
   items: [
@@ -85,6 +93,10 @@ type Ctx = {
   settleDebtor: (id: string) => void;
   addDebtor: (d: Omit<Debtor, "id" | "ts" | "paid">) => void;
   undoLast: () => void;
+  setPin: (pin: string | null, autoLockMin: number) => void;
+  addPayment: (amount: number, note: string) => void;
+  restoreState: (next: State) => void;
+  clearAll: () => void;
 };
 
 const StoreContext = createContext<Ctx | null>(null);
@@ -98,7 +110,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setState(JSON.parse(raw) as State);
+      if (raw) setState({ ...seed, ...(JSON.parse(raw) as State) });
     } catch {
       /* ignore */
     }
@@ -175,6 +187,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, txs: s.txs.slice(0, -1) }));
   }, []);
 
+  const setPin = useCallback((pin: string | null, autoLockMin: number) => {
+    setState((s) => ({ ...s, pin, autoLockMin }));
+  }, []);
+
+  const addPayment = useCallback((amount: number, note: string) => {
+    setState((s) => ({
+      ...s,
+      payments: [...s.payments, { id: uid(), amount, note, ts: Date.now() }],
+    }));
+  }, []);
+
+  const restoreState = useCallback((next: State) => {
+    setState({ ...seed, ...next });
+  }, []);
+
+  const clearAll = useCallback(() => {
+    setState({ ...seed, txs: [], debtors: [], items: [], payments: [], capital: 0 });
+  }, []);
+
   const value = useMemo<Ctx>(() => {
     const t = { sales: 0, expenses: 0, stock: 0 };
     const day = { sales: 0, expenses: 0, net: 0 };
@@ -200,8 +231,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       settleDebtor,
       addDebtor,
       undoLast,
+      setPin,
+      addPayment,
+      restoreState,
+      clearAll,
     };
-  }, [state, addTx, addStockItems, setCapital, settleDebtor, addDebtor, undoLast]);
+  }, [state, addTx, addStockItems, setCapital, settleDebtor, addDebtor, undoLast, setPin, addPayment, restoreState, clearAll]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
