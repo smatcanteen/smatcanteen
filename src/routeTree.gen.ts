@@ -27,6 +27,9 @@ import { Route as TermCapitalRouteImport } from './routes/term-capital'
 import { Route as TermTransitionRouteImport } from './routes/term-transition'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAccountsRouteImport } from './routes/admin.accounts'
+import { Route as AdminAgentsRouteImport } from './routes/admin.agents'
+import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
+import { Route as AdminNewRouteImport } from './routes/admin.new'
 import { Route as PayCategoryRouteImport } from './routes/pay.$category'
 
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +122,21 @@ const AdminAccountsRoute = AdminAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAgentsRoute = AdminAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLeadsRoute = AdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNewRoute = AdminNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PayCategoryRoute = PayCategoryRouteImport.update({
   id: '/pay/$category',
   path: '/pay/$category',
@@ -143,6 +161,9 @@ export interface FileRoutesByFullPath {
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
   '/admin/accounts': typeof AdminAccountsRoute
+  '/admin/agents': typeof AdminAgentsRoute
+  '/admin/leads': typeof AdminLeadsRoute
+  '/admin/new': typeof AdminNewRoute
   '/pay/$category': typeof PayCategoryRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -163,6 +184,9 @@ export interface FileRoutesByTo {
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
   '/admin/accounts': typeof AdminAccountsRoute
+  '/admin/agents': typeof AdminAgentsRoute
+  '/admin/leads': typeof AdminLeadsRoute
+  '/admin/new': typeof AdminNewRoute
   '/pay/$category': typeof PayCategoryRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -185,6 +209,9 @@ export interface FileRoutesById {
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
   '/admin/accounts': typeof AdminAccountsRoute
+  '/admin/agents': typeof AdminAgentsRoute
+  '/admin/leads': typeof AdminLeadsRoute
+  '/admin/new': typeof AdminNewRoute
   '/pay/$category': typeof PayCategoryRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -208,6 +235,9 @@ export interface FileRouteTypes {
     | '/term-capital'
     | '/term-transition'
     | '/admin/accounts'
+    | '/admin/agents'
+    | '/admin/leads'
+    | '/admin/new'
     | '/pay/$category'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -228,6 +258,9 @@ export interface FileRouteTypes {
     | '/term-capital'
     | '/term-transition'
     | '/admin/accounts'
+    | '/admin/agents'
+    | '/admin/leads'
+    | '/admin/new'
     | '/pay/$category'
     | '/admin'
   id:
@@ -249,6 +282,9 @@ export interface FileRouteTypes {
     | '/term-capital'
     | '/term-transition'
     | '/admin/accounts'
+    | '/admin/agents'
+    | '/admin/leads'
+    | '/admin/new'
     | '/pay/$category'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -401,6 +437,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAccountsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/agents': {
+      id: '/admin/agents'
+      path: '/agents'
+      fullPath: '/admin/agents'
+      preLoaderRoute: typeof AdminAgentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/leads': {
+      id: '/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/new': {
+      id: '/admin/new'
+      path: '/new'
+      fullPath: '/admin/new'
+      preLoaderRoute: typeof AdminNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/pay/$category': {
       id: '/pay/$category'
       path: '/pay/$category'
@@ -413,11 +470,17 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAccountsRoute: typeof AdminAccountsRoute
+  AdminAgentsRoute: typeof AdminAgentsRoute
+  AdminLeadsRoute: typeof AdminLeadsRoute
+  AdminNewRoute: typeof AdminNewRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAccountsRoute: AdminAccountsRoute,
+  AdminAgentsRoute: AdminAgentsRoute,
+  AdminLeadsRoute: AdminLeadsRoute,
+  AdminNewRoute: AdminNewRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
