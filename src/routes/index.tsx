@@ -33,7 +33,7 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
     label: "FOR YOU",
     tiles: [
       { to: "/sale", icon: "point_of_sale", label: "Cash Sale" },
-      { to: "/stock-in", icon: "local_shipping", label: "Stock In" },
+      { to: "/stock-in", icon: "shopping_cart", label: "Buy Stock" },
       { to: "/expense", icon: "receipt_long", label: "Expense" },
       { to: "/debtors", icon: "group", label: "Credit Book" },
       { to: "/close-out", icon: "task_alt", label: "Close Day" },
@@ -72,8 +72,7 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
       { to: "/history", icon: "history", label: "Past Terms" },
       { to: "/term-capital", icon: "account_balance", label: "Term Capital" },
       { to: "/term-transition", icon: "event_repeat", label: "Close Term" },
-      { to: "/onboarding", icon: "rocket_launch", label: "New Canteen" },
-      { to: "/admin", icon: "admin_panel_settings", label: "Admin" },
+      { to: "/subscription", icon: "card_membership", label: "Subscription" },
       { to: "/settings", icon: "settings", label: "Settings" },
     ],
   },

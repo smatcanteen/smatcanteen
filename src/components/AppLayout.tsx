@@ -1,6 +1,7 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
+import { useAuth } from "@/lib/auth";
 import logoStacked from "@/assets/logo-stacked.png.asset.json";
 
 const bottomNav = [
@@ -36,6 +37,17 @@ export function AppLayout({
 }) {
   const router = useRouter();
   const path = router.state.location.pathname;
+  const navigate = useNavigate();
+  const { user, ready, logout } = useAuth();
+
+  // Operator screens are private: no session means back to the login page.
+  useEffect(() => {
+    if (!ready) return;
+    if (!user) navigate({ to: "/login" });
+    else if (user.role === "admin") navigate({ to: "/admin" });
+  }, [ready, user, navigate]);
+
+  if (!user || user.role !== "operator") return null;
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-high">
@@ -82,13 +94,19 @@ export function AppLayout({
             >
               <Icon name="card_membership" />
             </Link>
-            <Link
-              to="/login"
+            <span className="hidden max-w-[140px] truncate text-xs font-semibold text-on-primary/80 sm:block">
+              {user.name}
+            </span>
+            <button
+              onClick={() => {
+                logout();
+                navigate({ to: "/login" });
+              }}
               className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
-              aria-label="Account"
+              aria-label="Log out"
             >
-              <Icon name="account_circle" />
-            </Link>
+              <Icon name="logout" />
+            </button>
           </div>
         </header>
 

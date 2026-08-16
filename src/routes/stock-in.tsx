@@ -9,9 +9,9 @@ import { dateInput, fromDateInput, ugx, useStore } from "@/lib/store";
 export const Route = createFileRoute("/stock-in")({
   head: () => ({
     meta: [
-      { title: "Stock In — SmartCanteen" },
+      { title: "Buy Stock — SmartCanteen" },
       { name: "description", content: "Log a restocking trip: package size, quantity, buying price, selling price and live expected profit." },
-      { property: "og:title", content: "Stock In — SmartCanteen" },
+      { property: "og:title", content: "Buy Stock — SmartCanteen" },
       { property: "og:description", content: "Roomy line-item stock entry with package sizes, dates and live expected profit." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -79,7 +79,7 @@ function StockIn() {
   };
 
   return (
-    <AppLayout title="Stock In" back>
+    <AppLayout title="Buy Stock" back>
       <Card className="flex flex-col gap-sm sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="label-bold text-on-surface-variant">Cash at Hand after this trip</p>

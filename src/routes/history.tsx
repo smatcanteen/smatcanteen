@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
 import { Card, Field, SectionTitle, SelectField } from "@/components/ui-kit";
+import { GroupedBars, TrendLine } from "@/components/Charts";
 import { exportCsv, exportExcel, exportPdf, type Sheet } from "@/lib/export";
 import { dateInput, ugx, useStore, type Tx } from "@/lib/store";
 
@@ -87,6 +88,31 @@ function History() {
 
   const base = `smartcanteen-${termLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
+  // Visual term-on-term comparison: sales, stock, expenses and profit side by side.
+  const compareSeries = [
+    { key: "sales", label: "Sales", color: "var(--color-primary)" },
+    { key: "stock", label: "Stock", color: "var(--color-secondary)" },
+    { key: "expenses", label: "Expenses", color: "var(--color-tertiary)" },
+    { key: "profit", label: "Profit", color: "var(--color-primary-container)" },
+  ];
+  const compareRows: { label: string; values: Record<string, number> }[] = [
+    ...[...state.terms]
+      .sort((a, b) => a.closedAt - b.closedAt)
+      .map((t) => ({
+        label: t.name,
+        values: { sales: t.sales, stock: t.stockSpend, expenses: t.expenses, profit: t.profit },
+      })),
+    {
+      label: `${state.termName} (now)`,
+      values: {
+        sales: totals.sales,
+        stock: totals.stock,
+        expenses: totals.expenses,
+        profit: totals.sales - totals.stock - totals.expenses,
+      },
+    },
+  ];
+
   return (
     <AppLayout title="Past Terms" back>
       <section className="space-y-sm">
@@ -130,6 +156,15 @@ function History() {
           </Card>
         </div>
       </section>
+
+      <Card className="space-y-md">
+        <SectionTitle>Compare terms</SectionTitle>
+        <GroupedBars rows={compareRows} series={compareSeries} />
+        <div>
+          <p className="mb-1 label-bold text-on-surface-variant">Profit trend</p>
+          <TrendLine points={compareRows.map((r) => ({ label: r.label, value: r.values["profit"] ?? 0 }))} />
+        </div>
+      </Card>
 
       <Card className="space-y-sm">
         <SectionTitle>Filter entries</SectionTitle>
