@@ -12,7 +12,7 @@ import {
   usePlatform,
   type LeadStage,
 } from "@/lib/platform";
-import logoReversed from "@/assets/logo-reversed.png.asset.json";
+import { BrandLock } from "@/components/Brand";
 
 export const Route = createFileRoute("/agent")({
   head: () => ({
