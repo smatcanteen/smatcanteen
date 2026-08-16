@@ -73,6 +73,7 @@ const tabs: { id: string; label: string; tiles: Tile[] }[] = [
       { to: "/term-capital", icon: "account_balance", label: "Term Capital" },
       { to: "/term-transition", icon: "event_repeat", label: "Close Term" },
       { to: "/subscription", icon: "card_membership", label: "Subscription" },
+      { to: "/support", icon: "support_agent", label: "Help & Feedback" },
       { to: "/settings", icon: "settings", label: "Settings" },
     ],
   },
