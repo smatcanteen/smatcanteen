@@ -14,6 +14,7 @@ import { Route as CloseOutRouteImport } from './routes/close-out'
 import { Route as DebtorsRouteImport } from './routes/debtors'
 import { Route as ExpenseRouteImport } from './routes/expense'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as StockRouteImport } from './routes/stock'
@@ -43,6 +44,11 @@ const ExpenseRoute = ExpenseRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportRoute = ReportRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/debtors'
     | '/expense'
     | '/login'
+    | '/onboarding'
     | '/report'
     | '/sale'
     | '/stock'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/debtors'
     | '/expense'
     | '/login'
+    | '/onboarding'
     | '/report'
     | '/sale'
     | '/stock'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/debtors'
     | '/expense'
     | '/login'
+    | '/onboarding'
     | '/report'
     | '/sale'
     | '/stock'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   DebtorsRoute: typeof DebtorsRoute
   ExpenseRoute: typeof ExpenseRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   ReportRoute: typeof ReportRoute
   SaleRoute: typeof SaleRoute
   StockRoute: typeof StockRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/report': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   DebtorsRoute: DebtorsRoute,
   ExpenseRoute: ExpenseRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   ReportRoute: ReportRoute,
   SaleRoute: SaleRoute,
   StockRoute: StockRoute,
