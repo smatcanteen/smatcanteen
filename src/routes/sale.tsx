@@ -40,26 +40,6 @@ function Sale() {
   const press = (k: string) =>
     setAmount((a) => (k === "back" ? a.slice(0, -1) : (a + k).replace(/^0+(?=\d)/, "")));
 
-  const save = () => {
-    if (total <= 0) return;
-    const label = itemize
-      ? Object.entries(picked)
-          .map(([id, q]) => `${state.items.find((i) => i.id === id)?.name} x${q}`)
-          .join(", ")
-      : "Cash sale";
-    if (credit) {
-      addDebtor({ name: debtor.name || "Unnamed student", klass: debtor.klass, item: label, amount: total });
-    } else {
-      addTx({ type: "sale", label });
-      // amount handled below
-    }
-    setAmount("");
-    setPicked({});
-    setSaved(true);
-    setTimeout(() => setSaved(false), 4000);
-  };
-
-  // addTx needs amount; wrap properly
   const handleSave = () => {
     if (total <= 0) return;
     const label = itemize
@@ -77,7 +57,6 @@ function Sale() {
     setSaved(true);
     setTimeout(() => setSaved(false), 4000);
   };
-  void save;
 
   return (
     <AppLayout title="Cash Sale" back>

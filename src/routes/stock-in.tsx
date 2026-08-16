@@ -56,7 +56,7 @@ function StockIn() {
       </p>
 
       {lines.map((line, i) => {
-        const p = parsed[i];
+        const p = parsed[i]!;
         return (
           <Card key={i} className="space-y-sm">
             <div className="flex items-center justify-between">
