@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
 import { ugx, shortUgx, useStore } from "@/lib/store";
@@ -206,15 +206,15 @@ function Home() {
         }}
       >
         {active.tiles.map((t, i) => (
-          <Link
+          <TileLink
             key={`${t.to}-${i}`}
             to={t.to}
-            params={t.params}
+            params={t.params ?? {}}
             className="card flex aspect-square flex-col items-center justify-center gap-1.5 p-2 text-center transition-transform active:scale-95 hover:bg-surface-low"
           >
             <Icon name={t.icon} className="text-[24px] text-primary sm:text-[26px]" />
             <span className="text-[11px] font-semibold leading-tight text-on-surface sm:text-xs">{t.label}</span>
-          </Link>
+          </TileLink>
         ))}
       </section>
       <p className="-mt-2 text-center text-[11px] text-on-surface-variant md:hidden">
@@ -301,6 +301,9 @@ function Home() {
     </AppLayout>
   );
 }
+
+/** Tiles link to both static and dynamic routes, so params are passed loosely. */
+const TileLink = Link as unknown as React.ComponentType<Record<string, unknown>>;
 
 function Kpi({ label, value, tone = "text-on-surface" }: { label: string; value: string; tone?: string }) {
   return (
