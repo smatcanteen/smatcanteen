@@ -65,11 +65,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-surface-high pb-16">
       <div className="bg-primary">
-        <header className="mx-auto flex h-16 w-full max-w-container-max items-center justify-between gap-2 px-4 md:px-gutter">
+        <header className="mx-auto flex h-16 w-full max-w-container-max items-center justify-between gap-2 px-3 sm:px-4 md:px-gutter">
           <div className="flex min-w-0 items-center gap-2">
-            <img src={logoReversed.url} alt="" aria-hidden className="h-9 w-9 rounded-full object-contain" />
+            <BrandMark variant="dark" size="sm" />
             <div className="min-w-0">
-              <p className="truncate text-base font-bold text-on-primary">SmartCanteen Admin</p>
+              <p className="truncate text-sm font-bold text-on-primary sm:text-base">SmartCanteen Admin</p>
               <p className="truncate text-[11px] text-on-primary/70">
                 {user.name} · {roleLabels[user.role]}
               </p>
@@ -95,14 +95,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <nav className="mx-auto flex w-full max-w-container-max gap-1 overflow-x-auto px-4 pb-2 md:px-gutter">
+        <nav className="mx-auto flex w-full max-w-container-max gap-1 overflow-x-auto px-3 pb-2 sm:px-4 md:px-gutter [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs
             .filter((t) => can(user.role, t.perm))
             .map((t) => (
               <Link
                 key={t.to}
                 to={t.to}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                preload="intent"
+                className={`shrink-0 rounded-full px-3 py-2 text-sm font-bold transition-colors sm:px-4 ${
                   path === t.to
                     ? "bg-on-primary text-primary"
                     : "text-on-primary/80 hover:bg-on-primary/10"
@@ -114,7 +115,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </nav>
       </div>
 
-      <main className="mx-auto w-full max-w-container-max space-y-md px-4 py-md md:px-gutter">{children}</main>
+      <main className="mx-auto w-full max-w-container-max space-y-sm px-3 py-md sm:space-y-md sm:px-4 md:px-gutter">
+        {children}
+      </main>
+
     </div>
   );
 }
