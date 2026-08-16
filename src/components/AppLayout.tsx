@@ -50,11 +50,9 @@ export function AppLayout({
                 <Icon name="arrow_back" />
               </Link>
             ) : (
-              <img
-                src={logoStacked.url}
-                alt="SmartCanteen"
-                className="h-9 w-9 shrink-0 rounded-full bg-surface object-cover"
-              />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface">
+                <img src={logoStacked.url} alt="SmartCanteen" className="h-9 w-9 scale-[1.9] object-contain" />
+              </span>
             )}
             <h1 className="truncate text-lg font-bold text-on-primary">{title}</h1>
           </div>
