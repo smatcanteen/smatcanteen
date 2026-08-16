@@ -129,7 +129,7 @@ export function AppLayout({
 
 
         {banner ? (
-          <div className="mx-auto w-full max-w-container-max px-4 pb-2 md:px-gutter">
+          <div className="mx-auto w-full max-w-container-max px-3 pb-2 sm:px-4 md:px-gutter">
             <div className="rounded-md bg-on-primary/10 p-3">
               <p className="text-sm font-bold text-on-primary">{banner.title}</p>
               <p className="text-xs text-on-primary/80">{banner.body}</p>
@@ -138,20 +138,21 @@ export function AppLayout({
         ) : null}
 
         {hero ? (
-          <div className="mx-auto w-full max-w-container-max px-4 md:px-gutter">{hero}</div>
+          <div className="mx-auto w-full max-w-container-max px-3 sm:px-4 md:px-gutter">{hero}</div>
         ) : null}
       </div>
 
       <main
-        className={`mx-auto w-full max-w-container-max flex-grow space-y-md rounded-t-2xl bg-surface-high px-4 pb-32 pt-md md:px-gutter md:pb-lg ${
+        className={`mx-auto w-full max-w-container-max flex-grow space-y-sm rounded-t-2xl bg-surface-high px-3 pb-32 pt-md sm:space-y-md sm:px-4 md:px-gutter lg:pb-lg ${
           hero ? "-mt-14" : "-mt-3"
         }`}
       >
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-outline-variant/40 bg-surface-lowest md:hidden">
-        <div className="relative mx-auto grid max-w-container-max grid-cols-5 items-end px-2 pb-2 pt-2">
+      <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-outline-variant/40 bg-surface-lowest pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="relative mx-auto grid max-w-md grid-cols-5 items-end px-2 pb-2 pt-2 sm:max-w-lg">
+
           {bottomNav.slice(0, 2).map((n) => (
             <BottomItem key={n.to} {...n} active={path === n.to} />
           ))}
