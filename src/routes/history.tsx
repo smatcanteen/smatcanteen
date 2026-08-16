@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
 import { Card, Field, SectionTitle, SelectField } from "@/components/ui-kit";
+import { GroupedBars, TrendLine } from "@/components/Charts";
 import { exportCsv, exportExcel, exportPdf, type Sheet } from "@/lib/export";
 import { dateInput, ugx, useStore, type Tx } from "@/lib/store";
 
