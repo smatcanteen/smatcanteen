@@ -19,7 +19,7 @@ export function Field({
   hint,
   id,
   ...props
-}: { label: string; hint?: string } & InputHTMLAttributes<HTMLInputElement>) {
+}: { label: string; hint?: string | undefined } & InputHTMLAttributes<HTMLInputElement>) {
   const auto = useId();
   const inputId = id ?? auto;
   const hintId = `${inputId}-hint`;
