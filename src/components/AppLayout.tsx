@@ -1,9 +1,10 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
+import { AccountAvatar, BrandMark, useAccountLogo } from "./Brand";
 import { homeForRole, useAuth } from "@/lib/auth";
 import { usePlatform } from "@/lib/platform";
-import logoStacked from "@/assets/logo-stacked.png.asset.json";
+
 
 const bottomNav = [
   { to: "/", icon: "home", label: "Home" },
