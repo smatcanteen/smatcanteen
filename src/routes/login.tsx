@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { useAuth } from "@/lib/auth";
+import { homeForRole, useAuth } from "@/lib/auth";
 import logoStacked from "@/assets/logo-stacked.png.asset.json";
 import logoReversed from "@/assets/logo-reversed.png.asset.json";
 
@@ -58,7 +58,7 @@ function Login() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (ready && user) navigate({ to: user.role === "admin" ? "/admin" : "/" });
+    if (ready && user) navigate({ to: homeForRole(user.role) });
   }, [ready, user, navigate]);
 
   const submit = () => {
@@ -68,7 +68,7 @@ function Login() {
       return;
     }
     setError("");
-    navigate({ to: res.role === "admin" ? "/admin" : "/" });
+    navigate({ to: homeForRole(res.role!) });
   };
 
   return (

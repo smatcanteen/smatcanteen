@@ -8,7 +8,21 @@ import {
   type ReactNode,
 } from "react";
 
-export type Role = "admin" | "operator";
+export type Role = "admin" | "support" | "finance" | "operator" | "agent";
+
+export const roleLabels: Record<Role, string> = {
+  admin: "Super Admin",
+  support: "Support Staff",
+  finance: "Finance",
+  operator: "Canteen operator",
+  agent: "Field agent",
+};
+
+/** Where each role lands after signing in. */
+export const homeForRole = (role: Role) =>
+  role === "operator" ? "/" : role === "agent" ? "/agent" : "/admin";
+
+export const isAdminRole = (role: Role) => role === "admin" || role === "support" || role === "finance";
 
 export type Account = {
   id: string;
@@ -25,7 +39,7 @@ export type Account = {
 
 type AuthState = { accounts: Account[]; sessionId: string | null };
 
-const KEY = "smartcanteen.auth.v1";
+const KEY = "smartcanteen.auth.v2";
 const uid = () => Math.random().toString(36).slice(2, 10);
 const ANCHOR = Date.UTC(2026, 7, 14, 9, 0, 0);
 
@@ -40,6 +54,50 @@ export const seedAccounts: Account[] = [
     school: "SmartCanteen HQ",
     phone: "+256 700 000 001",
     createdAt: ANCHOR - 200 * 86400000,
+    active: true,
+  },
+  {
+    id: "acc-support",
+    name: "Joan Atim",
+    email: "support@smartcanteen.app",
+    password: "support1234",
+    role: "support",
+    school: "SmartCanteen HQ",
+    phone: "+256 700 000 010",
+    createdAt: ANCHOR - 150 * 86400000,
+    active: true,
+  },
+  {
+    id: "acc-finance",
+    name: "Denis Mugisha",
+    email: "finance@smartcanteen.app",
+    password: "finance1234",
+    role: "finance",
+    school: "SmartCanteen HQ",
+    phone: "+256 700 000 011",
+    createdAt: ANCHOR - 150 * 86400000,
+    active: true,
+  },
+  {
+    id: "acc-agent-1",
+    name: "Moses Kigozi",
+    email: "agent@smartcanteen.app",
+    password: "agent1234",
+    role: "agent",
+    school: "Kampala Central zone",
+    phone: "+256 700 000 020",
+    createdAt: ANCHOR - 100 * 86400000,
+    active: true,
+  },
+  {
+    id: "acc-agent-2",
+    name: "Sarah Kembabazi",
+    email: "sarah.agent@smartcanteen.app",
+    password: "agent1234",
+    role: "agent",
+    school: "Wakiso zone",
+    phone: "+256 700 000 021",
+    createdAt: ANCHOR - 40 * 86400000,
     active: true,
   },
   {
@@ -91,6 +149,15 @@ type Ctx = {
     school: string;
     phone?: string;
   }) => { ok: boolean; error?: string; account?: Account };
+  /** Creates any account (agent, support staff, finance, operator). */
+  createAccount: (input: {
+    name: string;
+    email: string;
+    password: string;
+    school: string;
+    phone?: string;
+    role: Role;
+  }) => { ok: boolean; error?: string; account?: Account };
   toggleAccount: (id: string) => void;
 };
 
@@ -140,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => setData((d) => ({ ...d, sessionId: null })), []);
 
-  const createOperator = useCallback<Ctx["createOperator"]>(
+  const createAccount = useCallback<Ctx["createAccount"]>(
     (input) => {
       const email = input.email.trim().toLowerCase();
       if (!input.name.trim() || !email || input.password.length < 6) {
@@ -154,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: input.name.trim(),
         email,
         password: input.password,
-        role: "operator",
+        role: input.role,
         school: input.school.trim(),
         ...(input.phone ? { phone: input.phone } : {}),
         createdAt: Date.now(),
@@ -164,6 +231,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { ok: true, account };
     },
     [data.accounts],
+  );
+
+  const createOperator = useCallback<Ctx["createOperator"]>(
+    (input) => createAccount({ ...input, role: "operator" }),
+    [createAccount],
   );
 
   const toggleAccount = useCallback((id: string) => {
@@ -181,9 +253,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       createOperator,
+      createAccount,
       toggleAccount,
     }),
-    [data, ready, login, logout, createOperator, toggleAccount],
+    [data, ready, login, logout, createOperator, createAccount, toggleAccount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,7 +1,8 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
-import { useAuth } from "@/lib/auth";
+import { homeForRole, useAuth } from "@/lib/auth";
+import { usePlatform } from "@/lib/platform";
 import logoStacked from "@/assets/logo-stacked.png.asset.json";
 
 const bottomNav = [
@@ -39,12 +40,14 @@ export function AppLayout({
   const path = router.state.location.pathname;
   const navigate = useNavigate();
   const { user, ready, logout } = useAuth();
+  const { s: platform } = usePlatform();
+  const banner = platform.announcements.find((a) => a.active);
 
   // Operator screens are private: no session means back to the login page.
   useEffect(() => {
     if (!ready) return;
     if (!user) navigate({ to: "/login" });
-    else if (user.role === "admin") navigate({ to: "/admin" });
+    else if (user.role !== "operator") navigate({ to: homeForRole(user.role) });
   }, [ready, user, navigate]);
 
   if (!user || user.role !== "operator") return null;
@@ -88,6 +91,13 @@ export function AppLayout({
 
           <div className="flex shrink-0 items-center gap-1">
             <Link
+              to="/support"
+              className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
+              aria-label="Help and feedback"
+            >
+              <Icon name="support_agent" />
+            </Link>
+            <Link
               to="/subscription"
               className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
               aria-label="Subscription"
@@ -109,6 +119,15 @@ export function AppLayout({
             </button>
           </div>
         </header>
+
+        {banner ? (
+          <div className="mx-auto w-full max-w-container-max px-4 pb-2 md:px-gutter">
+            <div className="rounded-md bg-on-primary/10 p-3">
+              <p className="text-sm font-bold text-on-primary">{banner.title}</p>
+              <p className="text-xs text-on-primary/80">{banner.body}</p>
+            </div>
+          </div>
+        ) : null}
 
         {hero ? (
           <div className="mx-auto w-full max-w-container-max px-4 md:px-gutter">{hero}</div>
