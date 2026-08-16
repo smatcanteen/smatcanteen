@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import logoStacked from "@/assets/logo-stacked.png.asset.json";
+import brandIcon from "@/assets/brand-icon.png";
+
 
 
 /**
