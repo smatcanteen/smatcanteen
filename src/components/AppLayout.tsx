@@ -37,6 +37,17 @@ export function AppLayout({
 }) {
   const router = useRouter();
   const path = router.state.location.pathname;
+  const navigate = useNavigate();
+  const { user, ready, logout } = useAuth();
+
+  // Operator screens are private: no session means back to the login page.
+  useEffect(() => {
+    if (!ready) return;
+    if (!user) navigate({ to: "/login" });
+    else if (user.role === "admin") navigate({ to: "/admin" });
+  }, [ready, user, navigate]);
+
+  if (!user || user.role !== "operator") return null;
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-high">
