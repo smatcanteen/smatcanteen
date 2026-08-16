@@ -53,11 +53,12 @@ function NewAccount() {
   });
   const [invite, setInvite] = useState("");
   const [error, setError] = useState("");
-  const set = (patch: Partial<typeof f>) => setF({ ...f, ...patch });
+  const [busy, setBusy] = useState(false);
+  const set = (patch: Partial<typeof f>) => setF((prev) => ({ ...prev, ...patch }));
 
   const clone = (accountId: string) => {
     const t = s.tenants.find((x) => x.accountId === accountId);
-    if (!t) return;
+    if (!t) return set({ cloneFrom: "" });
     set({
       cloneFrom: accountId,
       category: t.category,
@@ -69,7 +70,18 @@ function NewAccount() {
     });
   };
 
+  const next = () => {
+    if (step === 0 && (!f.ownerName.trim() || !f.school.trim())) {
+      setError("Owner name and school name are required.");
+      return;
+    }
+    setError("");
+    setStep((x) => x + 1);
+  };
+
   const finish = () => {
+    if (busy) return;
+    setBusy(true);
     const res = createOperator({
       name: f.ownerName,
       email: f.email,
@@ -79,13 +91,14 @@ function NewAccount() {
     });
     if (!res.ok || !res.account) {
       setError(res.error ?? "Could not create the account.");
+      setBusy(false);
       return;
     }
     setError("");
     const trialDays = Number(f.trialDays) || 0;
     addTenant({
       accountId: res.account.id,
-      canteenName: f.canteenName || `${f.ownerName}'s canteen`,
+      canteenName: f.canteenName.trim() || `${f.ownerName.trim()}'s canteen`,
       school: f.school,
       ownerName: f.ownerName,
       phone: f.phone,
@@ -113,10 +126,12 @@ function NewAccount() {
     const msg = s.settings.welcomeTemplate
       .replace("{name}", f.ownerName)
       .replace("{link}", link)
-      .replace("{email}", f.email);
+      .replace("{email}", f.email.trim().toLowerCase());
     setInvite(`https://wa.me/${f.phone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`);
     setStep(3);
+    setBusy(false);
   };
+
 
   return (
     <>
