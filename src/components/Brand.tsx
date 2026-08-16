@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import brandIcon from "@/assets/brand-icon.png";
+import markLight from "@/assets/mark-light.png";
+import markDark from "@/assets/mark-dark.png";
+
 
 
 
@@ -27,17 +29,23 @@ export function BrandMark({
   variant?: "light" | "dark";
   className?: string;
 }) {
+  const dark = variant === "dark";
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full ${
-        variant === "dark" ? "ring-1 ring-on-primary/30" : "ring-1 ring-outline-variant/60"
+        dark ? "bg-transparent" : "bg-transparent"
       } ${box[size]} ${className}`}
     >
-      <img src={brandIcon} alt="" aria-hidden loading="lazy" className="h-full w-full object-contain" />
+      <img
+        src={dark ? markDark : markLight}
+        alt=""
+        aria-hidden
+        className={`h-full w-full object-contain ${dark ? "scale-110" : ""}`}
+      />
     </span>
   );
-
 }
+
 
 
 /** Mark + wordmark + optional context line (role, canteen, territory). */
