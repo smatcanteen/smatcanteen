@@ -167,7 +167,11 @@ function Home() {
           { to: "/term-capital", icon: "savings", label: "Term capital & goal" },
           { to: "/stock", icon: "inventory", label: "Stock & low-stock alerts" },
           { to: "/report", icon: "description", label: "Term report card" },
+          { to: "/term-transition", icon: "event_repeat", label: "Close term & carry forward" },
+          { to: "/onboarding", icon: "rocket_launch", label: "Set up a new canteen" },
+          { to: "/admin", icon: "admin_panel_settings", label: "Admin overview" },
         ].map((c) => (
+
           <Link
             key={c.to}
             to={c.to}
