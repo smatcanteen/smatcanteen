@@ -43,6 +43,8 @@ export function AppLayout({
   const { user, ready, logout } = useAuth();
   const { s: platform } = usePlatform();
   const banner = platform.announcements.find((a) => a.active);
+  const { logo } = useAccountLogo(user?.id);
+
 
   // Operator screens are private: no session means back to the login page.
   useEffect(() => {
