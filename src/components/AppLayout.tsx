@@ -6,7 +6,7 @@ import logoStacked from "@/assets/logo-stacked.png.asset.json";
 const bottomNav = [
   { to: "/", icon: "home", label: "Home" },
   { to: "/stock", icon: "inventory_2", label: "Stock" },
-  { to: "/report", icon: "bar_chart", label: "Reports" },
+  { to: "/history", icon: "history", label: "History" },
   { to: "/settings", icon: "more_horiz", label: "More" },
 ] as const;
 
@@ -14,6 +14,7 @@ const topNav = [
   { to: "/", label: "Home" },
   { to: "/stock", label: "Stock" },
   { to: "/report", label: "Reports" },
+  { to: "/history", label: "History" },
   { to: "/debtors", label: "Credit" },
   { to: "/close-out", label: "Close" },
   { to: "/subscription", label: "Plan" },

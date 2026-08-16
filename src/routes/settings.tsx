@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { AppLayout, Saved } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
-import { Card, Field, PrimaryButton, SectionTitle } from "@/components/ui-kit";
+import { Card, Field, PrimaryButton, SectionTitle, SelectField } from "@/components/ui-kit";
 import { useStore, type State } from "@/lib/store";
 
 export const Route = createFileRoute("/settings")({
@@ -27,7 +27,10 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { state, setPin, restoreState, clearAll } = useStore();
+  const { state, setPin, restoreState, clearAll, setTheme, setFontScale, addExpenseCategory, removeExpenseCategory } =
+    useStore();
+  const [newCat, setNewCat] = useState("");
+  const [newIcon, setNewIcon] = useState("smartphone");
   const [pin, setPinValue] = useState("");
   const [lock, setLock] = useState(String(state.autoLockMin));
   const [saved, setSaved] = useState(false);
@@ -124,6 +127,100 @@ function SettingsPage() {
             </button>
           </div>
           <p className="text-xs text-outline">PIN must be 4–6 digits.</p>
+        </Card>
+      </div>
+
+      <div>
+        <SectionTitle>Appearance &amp; accessibility</SectionTitle>
+        <Card className="space-y-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-bold text-on-surface-variant">Dark mode</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={state.theme === "dark"}
+              onClick={() => setTheme(state.theme === "dark" ? "light" : "dark")}
+              className={`flex h-11 min-h-11 items-center gap-2 rounded-full px-4 text-sm font-bold ${
+                state.theme === "dark" ? "bg-primary text-on-primary" : "bg-surface-high text-on-surface"
+              }`}
+            >
+              <Icon name={state.theme === "dark" ? "dark_mode" : "light_mode"} className="text-[20px]" />
+              {state.theme === "dark" ? "On" : "Off"}
+            </button>
+          </div>
+          <label className="block">
+            <span className="mb-1 block text-sm font-bold text-on-surface-variant">
+              Text size — {Math.round(state.fontScale * 100)}%
+            </span>
+            <input
+              type="range"
+              min={0.9}
+              max={1.4}
+              step={0.05}
+              value={state.fontScale}
+              onChange={(e) => setFontScale(Number(e.target.value))}
+              className="w-full accent-[#2f6b46]"
+              aria-label="Text size"
+            />
+          </label>
+          <p className="text-xs text-on-surface-variant">
+            Larger text scales the whole app, keeps tap targets at least 44px and works with screen readers.
+          </p>
+        </Card>
+      </div>
+
+      <div>
+        <SectionTitle>Expense categories</SectionTitle>
+        <Card className="space-y-sm">
+          <div className="flex flex-wrap gap-2">
+            {state.expenseCategories.map((c) => (
+              <span
+                key={c.id}
+                className="flex min-h-11 items-center gap-2 rounded-full bg-surface-high px-3 text-sm font-semibold text-on-surface"
+              >
+                <Icon name={c.icon} className="text-[18px] text-primary" />
+                {c.label}
+                <button
+                  type="button"
+                  onClick={() => removeExpenseCategory(c.id)}
+                  aria-label={`Remove ${c.label}`}
+                  className="text-tertiary"
+                >
+                  <Icon name="close" className="text-[18px]" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="grid gap-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <Field
+              label="New category"
+              value={newCat}
+              onChange={(e) => setNewCat(e.target.value)}
+              placeholder="e.g. Airtime"
+            />
+            <SelectField label="Icon" value={newIcon} onChange={(e) => setNewIcon(e.target.value)}>
+              {["smartphone", "wifi", "local_shipping", "bolt", "water_drop", "restaurant", "handyman", "home_work", "badge", "shopping_bag", "more_horiz"].map(
+                (i) => (
+                  <option key={i} value={i}>
+                    {i.replace(/_/g, " ")}
+                  </option>
+                ),
+              )}
+            </SelectField>
+            <PrimaryButton
+              disabled={!newCat.trim()}
+              onClick={() => {
+                addExpenseCategory(newCat.trim(), newIcon);
+                setNewCat("");
+                flash();
+              }}
+            >
+              <Icon name="add" /> Add
+            </PrimaryButton>
+          </div>
+          <p className="text-xs text-on-surface-variant">
+            New categories appear on the Expense screen and get their own quick-pay page.
+          </p>
         </Card>
       </div>
 
