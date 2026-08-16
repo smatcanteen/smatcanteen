@@ -176,11 +176,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<AuthState>;
-        setData({
-          accounts: parsed.accounts?.length ? parsed.accounts : seedAccounts,
-          sessionId: parsed.sessionId ?? null,
-        });
+        const accounts = parsed.accounts?.length ? parsed.accounts : seedAccounts;
+        takenRef.current = new Set(accounts.map((a) => a.email.toLowerCase()));
+        setData({ accounts, sessionId: parsed.sessionId ?? null });
       }
+
     } catch {
       /* ignore */
     }
