@@ -151,7 +151,7 @@ export function AppLayout({
       </main>
 
       <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-outline-variant/40 bg-surface-lowest pb-[env(safe-area-inset-bottom)] lg:hidden">
-        <div className="relative mx-auto grid max-w-md grid-cols-5 items-end px-2 pb-2 pt-2 sm:max-w-lg">
+        <div className="relative mx-auto grid w-full max-w-[560px] grid-cols-5 items-end px-2 pb-2 pt-2">
 
           {bottomNav.slice(0, 2).map((n) => (
             <BottomItem key={n.to} {...n} active={path === n.to} />
