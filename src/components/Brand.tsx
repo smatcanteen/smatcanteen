@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import logoStacked from "@/assets/logo-stacked.png.asset.json";
+import brandIcon from "@/assets/brand-icon.png";
+
 
 
 /**
@@ -28,13 +29,14 @@ export function BrandMark({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-lowest ${
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full ${
         variant === "dark" ? "ring-1 ring-on-primary/30" : "ring-1 ring-outline-variant/60"
       } ${box[size]} ${className}`}
     >
-      <img src={logoStacked.url} alt="" aria-hidden className="h-full w-full scale-[1.9] object-contain" />
+      <img src={brandIcon} alt="" aria-hidden loading="lazy" className="h-full w-full object-contain" />
     </span>
   );
+
 }
 
 
