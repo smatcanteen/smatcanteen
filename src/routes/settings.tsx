@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { AppLayout, Saved } from "@/components/AppLayout";
+import { AccountAvatar, useAccountLogo } from "@/components/Brand";
 import { Icon } from "@/components/Icon";
 import { Card, Field, PrimaryButton, SectionTitle, SelectField } from "@/components/ui-kit";
+import { useAuth } from "@/lib/auth";
 import { useStore, type State } from "@/lib/store";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -36,6 +39,10 @@ function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const logoRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const { logo, setLogo } = useAccountLogo(user?.id);
+
 
   const flash = () => {
     setSaved(true);
