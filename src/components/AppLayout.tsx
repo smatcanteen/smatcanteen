@@ -94,13 +94,19 @@ export function AppLayout({
             >
               <Icon name="card_membership" />
             </Link>
-            <Link
-              to="/login"
+            <span className="hidden max-w-[140px] truncate text-xs font-semibold text-on-primary/80 sm:block">
+              {user.name}
+            </span>
+            <button
+              onClick={() => {
+                logout();
+                navigate({ to: "/login" });
+              }}
               className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
-              aria-label="Account"
+              aria-label="Log out"
             >
-              <Icon name="account_circle" />
-            </Link>
+              <Icon name="logout" />
+            </button>
           </div>
         </header>
 
