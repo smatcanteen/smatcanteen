@@ -166,6 +166,8 @@ const AuthContext = createContext<Ctx | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AuthState>({ accounts: seedAccounts, sessionId: null });
   const [ready, setReady] = useState(false);
+  const takenRef = useRef<Set<string>>(new Set(seedAccounts.map((a) => a.email)));
+
 
   useEffect(() => {
     try {
