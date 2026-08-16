@@ -28,19 +28,15 @@ export function BrandMark({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full ${
-        variant === "dark" ? "bg-on-primary/12 ring-1 ring-on-primary/25" : "bg-surface-lowest ring-1 ring-outline-variant/60"
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-lowest ${
+        variant === "dark" ? "ring-1 ring-on-primary/30" : "ring-1 ring-outline-variant/60"
       } ${box[size]} ${className}`}
     >
-      <img
-        src={variant === "dark" ? logoReversed.url : logoStacked.url}
-        alt=""
-        aria-hidden
-        className="h-full w-full scale-[1.35] object-contain"
-      />
+      <img src={logoStacked.url} alt="" aria-hidden className="h-full w-full scale-[1.9] object-contain" />
     </span>
   );
 }
+
 
 /** Mark + wordmark + optional context line (role, canteen, territory). */
 export function BrandLock({
