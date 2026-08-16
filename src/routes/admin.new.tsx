@@ -144,6 +144,13 @@ function NewAccount() {
         ))}
       </div>
 
+      {error ? (
+        <p className="rounded-md bg-tertiary-container px-3 py-2 text-sm font-semibold text-on-tertiary-container">
+          {error}
+        </p>
+      ) : null}
+
+
       {step === 0 && (
         <Card className="grid gap-sm sm:grid-cols-2">
           <Field label="Canteen / business name" value={f.canteenName} onChange={(e) => set({ canteenName: e.target.value })} />
