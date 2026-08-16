@@ -1,9 +1,10 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
+import { AccountAvatar, BrandMark, useAccountLogo } from "./Brand";
 import { homeForRole, useAuth } from "@/lib/auth";
 import { usePlatform } from "@/lib/platform";
-import logoStacked from "@/assets/logo-stacked.png.asset.json";
+
 
 const bottomNav = [
   { to: "/", icon: "home", label: "Home" },
@@ -42,6 +43,8 @@ export function AppLayout({
   const { user, ready, logout } = useAuth();
   const { s: platform } = usePlatform();
   const banner = platform.announcements.find((a) => a.active);
+  const { logo } = useAccountLogo(user?.id);
+
 
   // Operator screens are private: no session means back to the login page.
   useEffect(() => {
@@ -55,7 +58,7 @@ export function AppLayout({
   return (
     <div className="flex min-h-screen flex-col bg-surface-high">
       <div className={`bg-primary ${hero ? "pb-20" : "pb-6"}`}>
-        <header className="mx-auto flex h-16 w-full max-w-container-max items-center justify-between px-4 md:px-gutter">
+        <header className="mx-auto grid h-16 w-full max-w-container-max grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 sm:px-4 md:px-gutter">
           <div className="flex min-w-0 items-center gap-2">
             {back ? (
               <Link
@@ -65,19 +68,23 @@ export function AppLayout({
               >
                 <Icon name="arrow_back" />
               </Link>
+            ) : logo ? (
+              <AccountAvatar name={user.name} logo={logo} variant="dark" size="sm" />
             ) : (
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface">
-                <img src={logoStacked.url} alt="SmartCanteen" className="h-9 w-9 scale-[1.9] object-contain" />
-              </span>
+              <BrandMark variant="dark" size="sm" />
             )}
-            <h1 className="truncate text-lg font-bold text-on-primary">{title}</h1>
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-bold text-on-primary sm:text-lg">{title}</h1>
+              <p className="truncate text-[11px] text-on-primary/70 sm:hidden">{user.school || user.name}</p>
+            </div>
           </div>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center gap-1 lg:flex">
             {topNav.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
+                preload="intent"
                 className={`rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
                   path === n.to
                     ? "bg-on-primary text-primary"
@@ -89,7 +96,7 @@ export function AppLayout({
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <Link
               to="/support"
               className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
@@ -99,12 +106,12 @@ export function AppLayout({
             </Link>
             <Link
               to="/subscription"
-              className="rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10"
+              className="hidden rounded-full p-2 text-secondary-container transition-colors hover:bg-on-primary/10 sm:block"
               aria-label="Subscription"
             >
               <Icon name="card_membership" />
             </Link>
-            <span className="hidden max-w-[140px] truncate text-xs font-semibold text-on-primary/80 sm:block">
+            <span className="hidden max-w-[140px] truncate text-xs font-semibold text-on-primary/80 md:block">
               {user.name}
             </span>
             <button
@@ -120,8 +127,9 @@ export function AppLayout({
           </div>
         </header>
 
+
         {banner ? (
-          <div className="mx-auto w-full max-w-container-max px-4 pb-2 md:px-gutter">
+          <div className="mx-auto w-full max-w-container-max px-3 pb-2 sm:px-4 md:px-gutter">
             <div className="rounded-md bg-on-primary/10 p-3">
               <p className="text-sm font-bold text-on-primary">{banner.title}</p>
               <p className="text-xs text-on-primary/80">{banner.body}</p>
@@ -130,20 +138,21 @@ export function AppLayout({
         ) : null}
 
         {hero ? (
-          <div className="mx-auto w-full max-w-container-max px-4 md:px-gutter">{hero}</div>
+          <div className="mx-auto w-full max-w-container-max px-3 sm:px-4 md:px-gutter">{hero}</div>
         ) : null}
       </div>
 
       <main
-        className={`mx-auto w-full max-w-container-max flex-grow space-y-md rounded-t-2xl bg-surface-high px-4 pb-32 pt-md md:px-gutter md:pb-lg ${
+        className={`mx-auto w-full max-w-container-max flex-grow space-y-sm rounded-t-2xl bg-surface-high px-3 pb-32 pt-md sm:space-y-md sm:px-4 md:px-gutter lg:pb-lg ${
           hero ? "-mt-14" : "-mt-3"
         }`}
       >
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-outline-variant/40 bg-surface-lowest md:hidden">
-        <div className="relative mx-auto grid max-w-container-max grid-cols-5 items-end px-2 pb-2 pt-2">
+      <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-outline-variant/40 bg-surface-lowest pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="relative mx-auto grid w-full max-w-[560px] grid-cols-5 items-end px-2 pb-2 pt-2">
+
           {bottomNav.slice(0, 2).map((n) => (
             <BottomItem key={n.to} {...n} active={path === n.to} />
           ))}

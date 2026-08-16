@@ -72,7 +72,7 @@ function Onboarding() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col gap-md px-4 py-8">
+    <div className="mx-auto flex min-h-screen w-full max-w-[560px] flex-col gap-md px-4 py-8">
       <div className="flex items-center gap-2">
         <span className="rounded-full bg-primary p-2 text-on-primary">
           <Icon name="storefront" />

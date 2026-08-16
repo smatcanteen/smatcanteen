@@ -4,6 +4,8 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
+
   useState,
   type ReactNode,
 } from "react";
@@ -166,17 +168,19 @@ const AuthContext = createContext<Ctx | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AuthState>({ accounts: seedAccounts, sessionId: null });
   const [ready, setReady] = useState(false);
+  const takenRef = useRef<Set<string>>(new Set(seedAccounts.map((a) => a.email)));
+
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<AuthState>;
-        setData({
-          accounts: parsed.accounts?.length ? parsed.accounts : seedAccounts,
-          sessionId: parsed.sessionId ?? null,
-        });
+        const accounts = parsed.accounts?.length ? parsed.accounts : seedAccounts;
+        takenRef.current = new Set(accounts.map((a) => a.email.toLowerCase()));
+        setData({ accounts, sessionId: parsed.sessionId ?? null });
       }
+
     } catch {
       /* ignore */
     }
@@ -207,36 +211,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => setData((d) => ({ ...d, sessionId: null })), []);
 
-  const createAccount = useCallback<Ctx["createAccount"]>(
-    (input) => {
-      const email = input.email.trim().toLowerCase();
-      if (!input.name.trim() || !email || input.password.length < 6) {
-        return { ok: false, error: "Name, email and a password of at least 6 characters are required." };
-      }
-      if (data.accounts.some((a) => a.email.toLowerCase() === email)) {
-        return { ok: false, error: "An account with that email already exists." };
-      }
-      const account: Account = {
-        id: uid(),
-        name: input.name.trim(),
-        email,
-        password: input.password,
-        role: input.role,
-        school: input.school.trim(),
-        ...(input.phone ? { phone: input.phone } : {}),
-        createdAt: Date.now(),
-        active: true,
-      };
-      setData((d) => ({ ...d, accounts: [...d.accounts, account] }));
-      return { ok: true, account };
-    },
-    [data.accounts],
-  );
+  const createAccount = useCallback<Ctx["createAccount"]>((input) => {
+    const email = input.email.trim().toLowerCase();
+    const name = input.name.trim();
+    if (!name) return { ok: false, error: "Please enter the person's full name." };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Please enter a valid email address." };
+    if (input.password.length < 6) return { ok: false, error: "The password needs at least 6 characters." };
+
+    const account: Account = {
+      id: uid(),
+      name,
+      email,
+      password: input.password,
+      role: input.role,
+      school: input.school.trim(),
+      ...(input.phone ? { phone: input.phone.trim() } : {}),
+      createdAt: Date.now(),
+      active: true,
+    };
+
+    // A ref of emails already handed out guards rapid double-submits, and the
+    // updater itself never appends the same email twice.
+    if (takenRef.current.has(email)) {
+      return { ok: false, error: "An account with that email already exists." };
+    }
+    takenRef.current.add(email);
+    setData((d) =>
+      d.accounts.some((a) => a.email.toLowerCase() === email)
+        ? d
+        : { ...d, accounts: [...d.accounts, account] },
+    );
+    return { ok: true, account };
+  }, []);
+
 
   const createOperator = useCallback<Ctx["createOperator"]>(
     (input) => createAccount({ ...input, role: "operator" }),
     [createAccount],
   );
+
 
   const toggleAccount = useCallback((id: string) => {
     setData((d) => ({

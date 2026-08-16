@@ -53,11 +53,12 @@ function NewAccount() {
   });
   const [invite, setInvite] = useState("");
   const [error, setError] = useState("");
-  const set = (patch: Partial<typeof f>) => setF({ ...f, ...patch });
+  const [busy, setBusy] = useState(false);
+  const set = (patch: Partial<typeof f>) => setF((prev) => ({ ...prev, ...patch }));
 
   const clone = (accountId: string) => {
     const t = s.tenants.find((x) => x.accountId === accountId);
-    if (!t) return;
+    if (!t) return set({ cloneFrom: "" });
     set({
       cloneFrom: accountId,
       category: t.category,
@@ -69,7 +70,18 @@ function NewAccount() {
     });
   };
 
+  const next = () => {
+    if (step === 0 && (!f.ownerName.trim() || !f.school.trim())) {
+      setError("Owner name and school name are required.");
+      return;
+    }
+    setError("");
+    setStep((x) => x + 1);
+  };
+
   const finish = () => {
+    if (busy) return;
+    setBusy(true);
     const res = createOperator({
       name: f.ownerName,
       email: f.email,
@@ -79,13 +91,14 @@ function NewAccount() {
     });
     if (!res.ok || !res.account) {
       setError(res.error ?? "Could not create the account.");
+      setBusy(false);
       return;
     }
     setError("");
     const trialDays = Number(f.trialDays) || 0;
     addTenant({
       accountId: res.account.id,
-      canteenName: f.canteenName || `${f.ownerName}'s canteen`,
+      canteenName: f.canteenName.trim() || `${f.ownerName.trim()}'s canteen`,
       school: f.school,
       ownerName: f.ownerName,
       phone: f.phone,
@@ -113,10 +126,12 @@ function NewAccount() {
     const msg = s.settings.welcomeTemplate
       .replace("{name}", f.ownerName)
       .replace("{link}", link)
-      .replace("{email}", f.email);
+      .replace("{email}", f.email.trim().toLowerCase());
     setInvite(`https://wa.me/${f.phone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`);
     setStep(3);
+    setBusy(false);
   };
+
 
   return (
     <>
@@ -128,6 +143,13 @@ function NewAccount() {
           </div>
         ))}
       </div>
+
+      {error ? (
+        <p className="rounded-md bg-tertiary-container px-3 py-2 text-sm font-semibold text-on-tertiary-container">
+          {error}
+        </p>
+      ) : null}
+
 
       {step === 0 && (
         <Card className="grid gap-sm sm:grid-cols-2">
@@ -247,10 +269,13 @@ function NewAccount() {
         </Card>
       )}
 
-      <div className="flex gap-sm">
+      <div className="sticky bottom-0 z-10 -mx-4 flex gap-sm bg-surface-high/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:bg-transparent md:px-0 md:py-0">
         {step > 0 && step < 3 ? (
           <button
-            onClick={() => setStep((x) => x - 1)}
+            onClick={() => {
+              setError("");
+              setStep((x) => x - 1);
+            }}
             className="h-12 flex-1 rounded-md border-2 border-outline-variant font-bold text-on-surface-variant"
           >
             Back
@@ -258,19 +283,20 @@ function NewAccount() {
         ) : null}
         <div className="flex-[2]">
           {step < 2 ? (
-            <PrimaryButton onClick={() => setStep((x) => x + 1)}>
+            <PrimaryButton onClick={next}>
               Continue <Icon name="arrow_forward" />
             </PrimaryButton>
           ) : step === 2 ? (
-            <PrimaryButton tone="cta" onClick={finish}>
-              Create account <Icon name="check" />
+            <PrimaryButton tone="cta" onClick={finish} disabled={busy}>
+              {busy ? "Creating…" : "Create account"} <Icon name="check" />
             </PrimaryButton>
           ) : (
             <PrimaryButton
               onClick={() => {
                 setStep(0);
                 setInvite("");
-                set({ canteenName: "", ownerName: "", email: "", password: "", phone: "" });
+                setError("");
+                set({ canteenName: "", ownerName: "", email: "", password: "", phone: "", csv: "", cloneFrom: "" });
               }}
             >
               Create another
@@ -278,6 +304,7 @@ function NewAccount() {
           )}
         </div>
       </div>
+
     </>
   );
 }

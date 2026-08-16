@@ -29,30 +29,53 @@ function Agents() {
   const { createAccount } = useAuth();
   const [f, setF] = useState({ name: "", phone: "", email: "", territory: zones[0]!, password: "agent1234" });
   const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const avgChurn =
     s.agents.reduce((a, x) => a + agentChurnRate(x.id, s.tenants), 0) / Math.max(1, s.agents.length);
 
   const register = () => {
-    if (!f.name.trim() || !f.email.trim()) return;
+    if (busy) return;
+    const email = f.email.trim().toLowerCase();
+    if (!f.name.trim() || !email) {
+      setError("Full name and login email are required.");
+      return;
+    }
+    if (s.agents.some((a) => a.email.toLowerCase() === email)) {
+      setError("An agent with that email is already registered.");
+      return;
+    }
+    setBusy(true);
     const acc = createAccount({
       name: f.name,
-      email: f.email,
+      email,
       password: f.password,
       school: f.territory,
       phone: f.phone,
       role: "agent",
     });
+    if (!acc.ok || !acc.account) {
+      setError(acc.error ?? "Could not create the agent login.");
+      setMsg("");
+      setBusy(false);
+      return;
+    }
     const agent = addAgent({
-      accountId: acc.account?.id ?? null,
+      accountId: acc.account.id,
       name: f.name.trim(),
-      phone: f.phone,
-      email: f.email.trim().toLowerCase(),
+      phone: f.phone.trim(),
+      email,
       territory: f.territory,
     });
-    setMsg(`${agent.name} registered as Pending. They must pass training before activating paying accounts.`);
-    setF({ ...f, name: "", phone: "", email: "" });
+    setError("");
+    setMsg(
+      `${agent.name} registered as Pending. They can log in with ${email} and must pass training before activating paying accounts.`,
+    );
+    setF((prev) => ({ ...prev, name: "", phone: "", email: "" }));
+    setBusy(false);
   };
+
 
   return (
     <>
@@ -89,12 +112,12 @@ function Agents() {
 
       <Card className="space-y-sm">
         <SectionTitle>Register an agent (approval required)</SectionTitle>
-        <div className="grid gap-sm sm:grid-cols-2">
-          <Field label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-          <Field label="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
-          <Field label="Email / login" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-          <Field label="Temporary password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
-          <SelectField label="Territory / zone" value={f.territory} onChange={(e) => setF({ ...f, territory: e.target.value })}>
+        <div className="grid gap-sm sm:grid-cols-2 xl:grid-cols-3">
+          <Field label="Full name" value={f.name} onChange={(e) => setF((p) => ({ ...p, name: e.target.value }))} />
+          <Field label="Phone" value={f.phone} onChange={(e) => setF((p) => ({ ...p, phone: e.target.value }))} />
+          <Field label="Email / login" type="email" value={f.email} onChange={(e) => setF((p) => ({ ...p, email: e.target.value }))} />
+          <Field label="Temporary password" value={f.password} onChange={(e) => setF((p) => ({ ...p, password: e.target.value }))} />
+          <SelectField label="Territory / zone" value={f.territory} onChange={(e) => setF((p) => ({ ...p, territory: e.target.value }))}>
             {zones.map((z) => (
               <option key={z} value={z}>
                 {z}
@@ -102,9 +125,11 @@ function Agents() {
             ))}
           </SelectField>
         </div>
+        {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
         {msg ? <p className="text-sm font-semibold text-primary">{msg}</p> : null}
-        <PrimaryButton onClick={register}>
-          <Icon name="person_add" /> Register agent
+        <PrimaryButton onClick={register} disabled={busy}>
+          <Icon name="person_add" /> {busy ? "Registering…" : "Register agent"}
+
         </PrimaryButton>
       </Card>
 

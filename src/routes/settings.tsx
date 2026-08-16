@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { AppLayout, Saved } from "@/components/AppLayout";
+import { AccountAvatar, useAccountLogo } from "@/components/Brand";
 import { Icon } from "@/components/Icon";
 import { Card, Field, PrimaryButton, SectionTitle, SelectField } from "@/components/ui-kit";
+import { useAuth } from "@/lib/auth";
 import { useStore, type State } from "@/lib/store";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -36,6 +39,10 @@ function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const logoRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const { logo, setLogo } = useAccountLogo(user?.id);
+
 
   const flash = () => {
     setSaved(true);
@@ -69,6 +76,58 @@ function SettingsPage() {
   return (
     <AppLayout title="Settings" back>
       <div>
+        <SectionTitle>Canteen logo</SectionTitle>
+        <Card className="flex flex-wrap items-center gap-sm">
+          <AccountAvatar name={user?.name ?? "SmartCanteen"} logo={logo} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-on-surface">
+              {logo ? "Your logo shows in the app header." : "Add a logo for your canteen."}
+            </p>
+            <p className="text-xs text-on-surface-variant">Square PNG or JPG, kept on this device.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => logoRef.current?.click()}
+              className="min-h-11 rounded-full border-2 border-outline-variant px-4 text-sm font-bold text-on-surface-variant"
+            >
+              {logo ? "Change" : "Upload"}
+            </button>
+            {logo ? (
+              <button
+                onClick={() => setLogo(null)}
+                className="min-h-11 rounded-full px-4 text-sm font-bold text-tertiary"
+              >
+                Remove
+              </button>
+            ) : null}
+          </div>
+          <input
+            ref={logoRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              if (file.size > 600_000) {
+                setError("That image is too large — pick one under 600 KB.");
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = () => {
+                setLogo(String(reader.result));
+                setError("");
+                flash();
+              };
+              reader.readAsDataURL(file);
+            }}
+          />
+        </Card>
+      </div>
+
+      <div>
+
         <SectionTitle>Privacy lock</SectionTitle>
         <Card className="space-y-sm">
           <p className="text-sm text-on-surface-variant">
