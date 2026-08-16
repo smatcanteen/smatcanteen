@@ -10,8 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CloseOutRouteImport } from './routes/close-out'
+import { Route as DebtorsRouteImport } from './routes/debtors'
 import { Route as ExpenseRouteImport } from './routes/expense'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as StockInRouteImport } from './routes/stock-in'
@@ -22,6 +25,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CloseOutRoute = CloseOutRouteImport.update({
+  id: '/close-out',
+  path: '/close-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebtorsRoute = DebtorsRouteImport.update({
+  id: '/debtors',
+  path: '/debtors',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExpenseRoute = ExpenseRouteImport.update({
   id: '/expense',
   path: '/expense',
@@ -30,6 +43,11 @@ const ExpenseRoute = ExpenseRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SaleRoute = SaleRouteImport.update({
@@ -55,8 +73,11 @@ const TermCapitalRoute = TermCapitalRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/close-out': typeof CloseOutRoute
+  '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
   '/login': typeof LoginRoute
+  '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
@@ -64,8 +85,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/close-out': typeof CloseOutRoute
+  '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
   '/login': typeof LoginRoute
+  '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
@@ -74,8 +98,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/close-out': typeof CloseOutRoute
+  '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
   '/login': typeof LoginRoute
+  '/report': typeof ReportRoute
   '/sale': typeof SaleRoute
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
@@ -85,8 +112,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/close-out'
+    | '/debtors'
     | '/expense'
     | '/login'
+    | '/report'
     | '/sale'
     | '/stock'
     | '/stock-in'
@@ -94,8 +124,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/close-out'
+    | '/debtors'
     | '/expense'
     | '/login'
+    | '/report'
     | '/sale'
     | '/stock'
     | '/stock-in'
@@ -103,8 +136,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/close-out'
+    | '/debtors'
     | '/expense'
     | '/login'
+    | '/report'
     | '/sale'
     | '/stock'
     | '/stock-in'
@@ -113,8 +149,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CloseOutRoute: typeof CloseOutRoute
+  DebtorsRoute: typeof DebtorsRoute
   ExpenseRoute: typeof ExpenseRoute
   LoginRoute: typeof LoginRoute
+  ReportRoute: typeof ReportRoute
   SaleRoute: typeof SaleRoute
   StockRoute: typeof StockRoute
   StockInRoute: typeof StockInRoute
@@ -130,6 +169,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/close-out': {
+      id: '/close-out'
+      path: '/close-out'
+      fullPath: '/close-out'
+      preLoaderRoute: typeof CloseOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debtors': {
+      id: '/debtors'
+      path: '/debtors'
+      fullPath: '/debtors'
+      preLoaderRoute: typeof DebtorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/expense': {
       id: '/expense'
       path: '/expense'
@@ -142,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sale': {
@@ -177,8 +237,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CloseOutRoute: CloseOutRoute,
+  DebtorsRoute: DebtorsRoute,
   ExpenseRoute: ExpenseRoute,
   LoginRoute: LoginRoute,
+  ReportRoute: ReportRoute,
   SaleRoute: SaleRoute,
   StockRoute: StockRoute,
   StockInRoute: StockInRoute,
