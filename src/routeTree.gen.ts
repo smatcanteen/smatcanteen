@@ -24,6 +24,7 @@ import { Route as StockInRouteImport } from './routes/stock-in'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as TermCapitalRouteImport } from './routes/term-capital'
 import { Route as TermTransitionRouteImport } from './routes/term-transition'
+import { Route as PayCategoryRouteImport } from './routes/pay.$category'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const TermTransitionRoute = TermTransitionRouteImport.update({
   path: '/term-transition',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayCategoryRoute = PayCategoryRouteImport.update({
+  id: '/pay/$category',
+  path: '/pay/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/pay/$category': typeof PayCategoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/pay/$category': typeof PayCategoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/subscription': typeof SubscriptionRoute
   '/term-capital': typeof TermCapitalRoute
   '/term-transition': typeof TermTransitionRoute
+  '/pay/$category': typeof PayCategoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/pay/$category'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/pay/$category'
   id:
     | '__root__'
     | '/'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/term-capital'
     | '/term-transition'
+    | '/pay/$category'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   SubscriptionRoute: typeof SubscriptionRoute
   TermCapitalRoute: typeof TermCapitalRoute
   TermTransitionRoute: typeof TermTransitionRoute
+  PayCategoryRoute: typeof PayCategoryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermTransitionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$category': {
+      id: '/pay/$category'
+      path: '/pay/$category'
+      fullPath: '/pay/$category'
+      preLoaderRoute: typeof PayCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscriptionRoute: SubscriptionRoute,
   TermCapitalRoute: TermCapitalRoute,
   TermTransitionRoute: TermTransitionRoute,
+  PayCategoryRoute: PayCategoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

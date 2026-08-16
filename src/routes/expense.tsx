@@ -1,17 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppLayout, Saved } from "@/components/AppLayout";
 import { Icon } from "@/components/Icon";
 import { Card, Field, MicButton, PrimaryButton, SectionTitle } from "@/components/ui-kit";
-import { ugx, useStore } from "@/lib/store";
+import { parseExpense } from "@/lib/voice";
+import { dateInput, fromDateInput, ugx, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/expense")({
   head: () => ({
     meta: [
       { title: "Expense Entry — SmartCanteen" },
-      { name: "description", content: "Log transport, salary, allowances and rent in one tap — Cash at Hand updates itself." },
+      { name: "description", content: "Log transport, salary, allowances, airtime and any category you add — Cash at Hand updates itself." },
       { property: "og:title", content: "Expense Entry — SmartCanteen" },
-      { property: "og:description", content: "Pinned category chips and fast amount entry for canteen expenses." },
+      { property: "og:description", content: "Category chips, voice entry and back-dating for canteen expenses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -19,19 +20,13 @@ export const Route = createFileRoute("/expense")({
   component: Expense,
 });
 
-const pinned = [
-  { l: "Transport", i: "local_shipping" },
-  { l: "Salary/Wages", i: "badge" },
-  { l: "Allowances", i: "volunteer_activism" },
-  { l: "Rent", i: "home_work" },
-];
-const more = ["Foodstuffs", "Cooking Gas", "Water", "Packaging", "Utensils/Repairs", "Miscellaneous"];
-
 function Expense() {
-  const { addTx, undoLast, cashAtHand } = useStore();
-  const [category, setCategory] = useState("Transport");
+  const { state, addTx, undoLast, cashAtHand } = useStore();
+  const cats = state.expenseCategories;
+  const [category, setCategory] = useState(cats[0]?.label ?? "Transport");
   const [amount, setAmount] = useState("");
   const [who, setWho] = useState("");
+  const [when, setWhen] = useState(dateInput(Date.now()));
   const [recurring, setRecurring] = useState(false);
   const [saved, setSaved] = useState(false);
   const value = Number(amount) || 0;
@@ -39,8 +34,10 @@ function Expense() {
   const save = () => {
     if (value <= 0) return;
     const label =
-      category === "Allowances" && who.trim() ? `Allowance — ${who.trim()}` : category + (recurring ? " (recurring)" : "");
-    addTx({ type: "expense", label, category, amount: value });
+      category === "Allowances" && who.trim()
+        ? `Allowance — ${who.trim()}`
+        : category + (recurring ? " (recurring)" : "");
+    addTx({ type: "expense", label, category, amount: value, ts: fromDateInput(when) });
     setAmount("");
     setWho("");
     setSaved(true);
@@ -50,56 +47,67 @@ function Expense() {
   return (
     <AppLayout title="Expense" back>
       <section>
-        <SectionTitle>Category</SectionTitle>
-        <div className="grid grid-cols-2 gap-sm">
-          {pinned.map((c) => (
-            <button
-              key={c.l}
-              onClick={() => setCategory(c.l)}
-              className={`flex h-16 items-center gap-sm rounded-lg px-md text-left font-bold transition-colors ${
-                category === c.l
-                  ? "bg-tertiary text-on-tertiary shadow-raised"
-                  : "bg-surface-lowest text-on-surface shadow-card"
-              }`}
-            >
-              <Icon name={c.i} />
-              <span className="text-sm">{c.l}</span>
-            </button>
-          ))}
+        <div className="mb-sm flex items-end justify-between px-1">
+          <h2 className="label-bold text-on-surface-variant">Category</h2>
+          <Link to="/settings" className="text-xs font-bold text-primary hover:underline">
+            + Add category
+          </Link>
         </div>
-        <div className="mt-sm flex flex-wrap gap-2">
-          {more.map((m) => (
+        <div className="grid grid-cols-2 gap-sm sm:grid-cols-3 lg:grid-cols-4">
+          {cats.map((c) => (
             <button
-              key={m}
-              onClick={() => setCategory(m)}
-              className={`rounded-full px-3 py-2 text-sm font-semibold ${
-                category === m ? "bg-tertiary text-on-tertiary" : "bg-surface-high text-on-surface-variant"
+              key={c.id}
+              onClick={() => setCategory(c.label)}
+              aria-pressed={category === c.label}
+              className={`flex min-h-16 items-center gap-sm rounded-lg px-3 text-left font-bold transition-colors ${
+                category === c.label
+                  ? "bg-tertiary text-on-tertiary shadow-raised"
+                  : "bg-surface-lowest text-on-surface shadow-card hover:bg-surface-low"
               }`}
             >
-              {m}
+              <Icon name={c.icon} />
+              <span className="text-sm leading-tight">{c.label}</span>
             </button>
           ))}
         </div>
       </section>
 
       <Card className="space-y-sm">
-        <div className="flex items-end gap-sm">
+        <div className="flex items-start gap-sm">
           <div className="flex-grow">
             <Field
               label={`Amount (UGX) — ${category}`}
               inputMode="numeric"
               placeholder="0"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
+              hint="Or say it: “transport fifteen thousand”"
             />
           </div>
-          <MicButton />
+          <MicButton
+            onResult={(t) => {
+              const r = parseExpense(t, cats);
+              if (r.category) setCategory(r.category);
+              if (r.amount > 0) setAmount(String(r.amount));
+            }}
+          />
         </div>
-        {category === "Allowances" && (
-          <Field label="For (name)" value={who} onChange={(e) => setWho(e.target.value)} placeholder="e.g. Sarah" />
-        )}
+
+        <div className="grid gap-sm sm:grid-cols-2">
+          <Field
+            label="Date of expense"
+            type="date"
+            value={when}
+            onChange={(e) => setWhen(e.target.value)}
+            hint="Back-date anything you forgot to log"
+          />
+          {category === "Allowances" && (
+            <Field label="For (name)" value={who} onChange={(e) => setWho(e.target.value)} placeholder="e.g. Sarah" />
+          )}
+        </div>
+
         {category === "Rent" && (
-          <label className="flex items-center justify-between">
+          <label className="flex min-h-11 items-center justify-between">
             <span className="text-sm font-bold text-on-surface-variant">Recurring each period</span>
             <input
               type="checkbox"
@@ -109,9 +117,7 @@ function Expense() {
             />
           </label>
         )}
-        <p className="text-xs text-outline">
-          Cash at Hand becomes UGX {ugx(cashAtHand - value)}
-        </p>
+        <p className="text-xs text-on-surface-variant">Cash at Hand becomes UGX {ugx(cashAtHand - value)}</p>
       </Card>
 
       <PrimaryButton tone="negative" onClick={save} disabled={value <= 0}>
