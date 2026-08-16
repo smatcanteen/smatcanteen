@@ -226,19 +226,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       active: true,
     };
 
-    // Duplicate check happens inside the updater so rapid double-submits can
-    // never create two accounts with the same email.
-    let duplicate = false;
-    setData((d) => {
-      if (d.accounts.some((a) => a.email.toLowerCase() === email)) {
-        duplicate = true;
-        return d;
-      }
-      return { ...d, accounts: [...d.accounts, account] };
-    });
-    if (duplicate) return { ok: false, error: "An account with that email already exists." };
+    // A ref of emails already handed out guards rapid double-submits, and the
+    // updater itself never appends the same email twice.
+    if (takenRef.current.has(email)) {
+      return { ok: false, error: "An account with that email already exists." };
+    }
+    takenRef.current.add(email);
+    setData((d) =>
+      d.accounts.some((a) => a.email.toLowerCase() === email)
+        ? d
+        : { ...d, accounts: [...d.accounts, account] },
+    );
     return { ok: true, account };
   }, []);
+
 
   const createOperator = useCallback<Ctx["createOperator"]>(
     (input) => createAccount({ ...input, role: "operator" }),
