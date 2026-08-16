@@ -23,7 +23,7 @@ export const Route = createFileRoute("/term-transition")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: TermTransition;
+  component: TermTransition,
 });
 
 function TermTransition() {
