@@ -13,6 +13,8 @@ const nav = [
   { to: "/settings", icon: "settings", label: "Settings" },
 ];
 
+const bottomNav = nav.filter((n) => n.to !== "/subscription");
+
 export function AppLayout({
   title,
   back,
@@ -75,7 +77,7 @@ export function AppLayout({
       </main>
 
       <nav className="fixed bottom-0 left-0 z-50 flex w-full justify-around rounded-t-xl bg-surface-container px-2 py-2 shadow-[0_-2px_10px_rgba(19,82,48,0.1)] md:hidden">
-        {nav.map((n) => {
+        {bottomNav.map((n) => {
           const active = path === n.to;
           return (
             <Link
