@@ -493,7 +493,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clearAll,
   ]);
 
-  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+  return (
+    <StoreContext.Provider value={value}>
+      {hydrated ? (
+        children
+      ) : (
+        // Data lives on the device, so the shell waits for it before painting numbers.
+        <div className="flex min-h-screen items-center justify-center bg-primary">
+          <span className="text-sm font-semibold text-on-primary/80">Loading SmartCanteen…</span>
+        </div>
+      )}
+    </StoreContext.Provider>
+  );
 }
 
 export function useStore() {
