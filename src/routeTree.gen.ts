@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CloseOutRouteImport } from './routes/close-out'
 import { Route as DebtorsRouteImport } from './routes/debtors'
 import { Route as ExpenseRouteImport } from './routes/expense'
@@ -20,10 +21,16 @@ import { Route as SaleRouteImport } from './routes/sale'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as StockInRouteImport } from './routes/stock-in'
 import { Route as TermCapitalRouteImport } from './routes/term-capital'
+import { Route as TermTransitionRouteImport } from './routes/term-transition'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CloseOutRoute = CloseOutRouteImport.update({
@@ -76,9 +83,15 @@ const TermCapitalRoute = TermCapitalRouteImport.update({
   path: '/term-capital',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermTransitionRoute = TermTransitionRouteImport.update({
+  id: '/term-transition',
+  path: '/term-transition',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -89,9 +102,11 @@ export interface FileRoutesByFullPath {
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
   '/term-capital': typeof TermCapitalRoute
+  '/term-transition': typeof TermTransitionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -102,10 +117,12 @@ export interface FileRoutesByTo {
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
   '/term-capital': typeof TermCapitalRoute
+  '/term-transition': typeof TermTransitionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -116,11 +133,13 @@ export interface FileRoutesById {
   '/stock': typeof StockRoute
   '/stock-in': typeof StockInRoute
   '/term-capital': typeof TermCapitalRoute
+  '/term-transition': typeof TermTransitionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -131,9 +150,11 @@ export interface FileRouteTypes {
     | '/stock'
     | '/stock-in'
     | '/term-capital'
+    | '/term-transition'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -144,9 +165,11 @@ export interface FileRouteTypes {
     | '/stock'
     | '/stock-in'
     | '/term-capital'
+    | '/term-transition'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -157,10 +180,12 @@ export interface FileRouteTypes {
     | '/stock'
     | '/stock-in'
     | '/term-capital'
+    | '/term-transition'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CloseOutRoute: typeof CloseOutRoute
   DebtorsRoute: typeof DebtorsRoute
   ExpenseRoute: typeof ExpenseRoute
@@ -171,6 +196,7 @@ export interface RootRouteChildren {
   StockRoute: typeof StockRoute
   StockInRoute: typeof StockInRoute
   TermCapitalRoute: typeof TermCapitalRoute
+  TermTransitionRoute: typeof TermTransitionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -180,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/close-out': {
@@ -252,11 +285,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermCapitalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/term-transition': {
+      id: '/term-transition'
+      path: '/term-transition'
+      fullPath: '/term-transition'
+      preLoaderRoute: typeof TermTransitionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CloseOutRoute: CloseOutRoute,
   DebtorsRoute: DebtorsRoute,
   ExpenseRoute: ExpenseRoute,
@@ -267,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   StockRoute: StockRoute,
   StockInRoute: StockInRoute,
   TermCapitalRoute: TermCapitalRoute,
+  TermTransitionRoute: TermTransitionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
