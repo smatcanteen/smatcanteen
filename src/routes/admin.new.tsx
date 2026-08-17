@@ -82,6 +82,16 @@ function NewAccount() {
       setError("Owner name and school name are required.");
       return;
     }
+    if (step === 2) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
+        setError("Enter a valid login email for the operator.");
+        return;
+      }
+      if (f.password.length < 6) {
+        setError("The password needs at least 6 characters.");
+        return;
+      }
+    }
     setError("");
     setStep((x) => x + 1);
   };
