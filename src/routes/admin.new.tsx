@@ -271,31 +271,114 @@ function NewAccount() {
 
       {step === 3 && (
         <Card className="space-y-sm">
-          <p className="flex items-center gap-1 text-sm font-bold text-primary">
-            <Icon name="check_circle" /> Account created.
+          <p className="text-sm text-on-surface-variant">
+            Enter the money the canteen is starting this term with. It becomes the operator's opening
+            Cash at Hand, so their very first screen is already correct.
           </p>
-          <SectionTitle>Welcome message template</SectionTitle>
+          <div className="grid gap-sm sm:grid-cols-2">
+            <Field label="Term name" value={f.termName} onChange={(e) => set({ termName: e.target.value })} />
+            <Field
+              label="Opening capital (UGX)"
+              inputMode="numeric"
+              placeholder="e.g. 2000000"
+              value={f.capital}
+              onChange={(e) => set({ capital: e.target.value })}
+            />
+            <Field
+              label="Target by term end (UGX)"
+              inputMode="numeric"
+              hint="Blank sets double the opening capital."
+              value={f.goal}
+              onChange={(e) => set({ goal: e.target.value })}
+            />
+          </div>
+          {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
+        </Card>
+      )}
+
+      {step === 4 && (
+        <Card className="space-y-sm">
+          <p className="flex items-center gap-1 text-sm font-bold text-primary">
+            <Icon name="check_circle" /> Account created for {f.ownerName || "the operator"}.
+          </p>
+
+          <div className="rounded-lg border border-outline-variant/60 bg-surface-low p-sm">
+            <p className="label-bold text-on-surface-variant">What they receive</p>
+            <dl className="mt-1 space-y-1 text-sm text-on-surface">
+              <div className="flex justify-between gap-2">
+                <dt className="text-on-surface-variant">Login page</dt>
+                <dd className="truncate font-semibold">{loginLink.replace("https://", "")}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-on-surface-variant">Email</dt>
+                <dd className="truncate font-semibold">{f.email.trim().toLowerCase() || "—"}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-on-surface-variant">Password</dt>
+                <dd className="font-semibold">{f.password}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-on-surface-variant">Opening capital</dt>
+                <dd className="font-semibold">UGX {(Number(f.capital) || 0).toLocaleString("en-UG")}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <SectionTitle>Welcome message</SectionTitle>
           <textarea
             rows={4}
             value={s.settings.welcomeTemplate}
             onChange={(e) => updateSettings({ welcomeTemplate: e.target.value })}
+            placeholder="Leave blank to use the standard SmartCanteen welcome with {name} {email} {password} {link}"
             className="w-full rounded-md border-2 border-outline-variant bg-surface-lowest p-3 text-sm text-on-surface"
           />
+
           {invite ? (
-            <a
-              href={invite}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-primary text-base font-bold text-on-primary"
-            >
-              <Icon name="chat" /> Send WhatsApp / SMS invite
-            </a>
+            <>
+              <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-surface-low p-3 text-xs text-on-surface-variant">
+                {invite.msg}
+              </pre>
+              <div className="grid gap-sm sm:grid-cols-2">
+                {invite.wa ? (
+                  <a
+                    href={invite.wa}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-primary text-base font-bold text-on-primary"
+                  >
+                    <Icon name="chat" /> Send on WhatsApp
+                  </a>
+                ) : (
+                  <p className="flex min-h-12 items-center justify-center rounded-md border-2 border-dashed border-outline-variant text-xs text-on-surface-variant">
+                    No valid phone number for WhatsApp
+                  </p>
+                )}
+                {invite.mail ? (
+                  <a
+                    href={invite.mail}
+                    className="flex min-h-12 items-center justify-center gap-2 rounded-md border-2 border-primary text-base font-bold text-primary"
+                  >
+                    <Icon name="mail" /> Send by email
+                  </a>
+                ) : (
+                  <p className="flex min-h-12 items-center justify-center rounded-md border-2 border-dashed border-outline-variant text-xs text-on-surface-variant">
+                    No email address on file
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => navigator.clipboard?.writeText(invite.msg)}
+                className="min-h-11 w-full rounded-md border-2 border-outline-variant text-sm font-bold text-on-surface-variant"
+              >
+                <Icon name="content_copy" className="text-[18px]" /> Copy message
+              </button>
+            </>
           ) : null}
-          <p className="text-xs text-on-surface-variant">
-            Created by {user?.name}. Branding preview uses the SmartCanteen green with the school name in the header.
-          </p>
+
+          <p className="text-xs text-on-surface-variant">Created by {user?.name}.</p>
         </Card>
       )}
+
 
       <div className="sticky bottom-0 z-10 -mx-4 flex gap-sm bg-surface-high/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:bg-transparent md:px-0 md:py-0">
         {step > 0 && step < 3 ? (
