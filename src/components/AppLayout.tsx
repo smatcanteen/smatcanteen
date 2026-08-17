@@ -41,7 +41,9 @@ export function AppLayout({
   const path = router.state.location.pathname;
   const navigate = useNavigate();
   const { user, ready, logout } = useAuth();
+  const { state, hydrated } = useStore();
   const { s: platform } = usePlatform();
+
   const banner = platform.announcements.find((a) => a.active);
   const { logo } = useAccountLogo(user?.id);
 
