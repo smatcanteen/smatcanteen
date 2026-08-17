@@ -173,6 +173,32 @@ const seed: State = {
   ],
 };
 
+seed.setupDone = true;
+
+/** A brand new account starts completely empty — no demo figures at all. */
+export const emptyState = (): State => ({
+  termName: "",
+  termStartedAt: Date.now(),
+  pin: null,
+  autoLockMin: 5,
+  theme: "light",
+  fontScale: 1,
+  payments: [],
+  capital: 0,
+  savingsGoal: 0,
+  expenseCategories: defaultExpenseCategories,
+  items: [],
+  txs: [],
+  debtors: [],
+  terms: [],
+  setupDone: false,
+});
+
+/** Only the seeded demo operator sees the sample cash book. */
+const DEMO_IDS = new Set(["acc-op-1"]);
+
+
+
 type Ctx = {
   state: State;
   hydrated: boolean;
