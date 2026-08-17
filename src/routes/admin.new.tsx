@@ -381,7 +381,7 @@ function NewAccount() {
 
 
       <div className="sticky bottom-0 z-10 -mx-4 flex gap-sm bg-surface-high/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:bg-transparent md:px-0 md:py-0">
-        {step > 0 && step < 3 ? (
+        {step > 0 && step < 4 ? (
           <button
             onClick={() => {
               setError("");
@@ -393,11 +393,11 @@ function NewAccount() {
           </button>
         ) : null}
         <div className="flex-[2]">
-          {step < 2 ? (
+          {step < 3 ? (
             <PrimaryButton onClick={next}>
               Continue <Icon name="arrow_forward" />
             </PrimaryButton>
-          ) : step === 2 ? (
+          ) : step === 3 ? (
             <PrimaryButton tone="cta" onClick={finish} disabled={busy}>
               {busy ? "Creating…" : "Create account"} <Icon name="check" />
             </PrimaryButton>
@@ -405,15 +405,26 @@ function NewAccount() {
             <PrimaryButton
               onClick={() => {
                 setStep(0);
-                setInvite("");
+                setInvite(null);
                 setError("");
-                set({ canteenName: "", ownerName: "", email: "", password: "", phone: "", csv: "", cloneFrom: "" });
+                set({
+                  canteenName: "",
+                  ownerName: "",
+                  email: "",
+                  password: "",
+                  phone: "",
+                  csv: "",
+                  cloneFrom: "",
+                  capital: "",
+                  goal: "",
+                });
               }}
             >
               Create another
             </PrimaryButton>
           )}
         </div>
+
       </div>
 
     </>
