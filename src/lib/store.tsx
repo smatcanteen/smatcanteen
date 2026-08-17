@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "./auth";
 
 export type TxType = "sale" | "expense" | "stock" | "capital";
 
@@ -375,6 +376,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       termName,
       capital: amount,
       savingsGoal: goal,
+      setupDone: true,
+      termStartedAt: s.termStartedAt || Date.now(),
       txs: [
         ...s.txs.filter((t) => t.type !== "capital"),
         { id: uid(), type: "capital", label: "Opening term capital", amount, ts: Date.now() },
