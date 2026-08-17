@@ -245,27 +245,38 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const isToday = (ts: number) => new Date(ts).toDateString() === new Date().toDateString();
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const { user, ready } = useAuth();
+  const userId = user?.id ?? null;
+  const baseFor = useCallback(
+    (id: string | null) => (id && DEMO_IDS.has(id) ? { ...seed } : emptyState()),
+    [],
+  );
   const [state, setState] = useState<State>(seed);
   const [hydrated, setHydrated] = useState(false);
 
+  // Load (or create) the cash book that belongs to the signed-in account.
   useEffect(() => {
+    if (!ready) return;
+    setHydrated(false);
+    const base = baseFor(userId);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setState({ ...seed, ...(JSON.parse(raw) as State) });
+      const raw = localStorage.getItem(storeKeyFor(userId));
+      setState(raw ? { ...base, ...(JSON.parse(raw) as State) } : base);
     } catch {
-      /* ignore */
+      setState(base);
     }
     setHydrated(true);
-  }, []);
+  }, [ready, userId, baseFor]);
 
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(storeKeyFor(userId), JSON.stringify(state));
     } catch {
       /* ignore */
     }
-  }, [state, hydrated]);
+  }, [state, hydrated, userId]);
+
 
   // Theme + font scale live on <html> so every screen follows them.
   useEffect(() => {
