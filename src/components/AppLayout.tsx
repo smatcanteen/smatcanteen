@@ -4,6 +4,8 @@ import { Icon } from "./Icon";
 import { AccountAvatar, BrandMark, useAccountLogo } from "./Brand";
 import { homeForRole, useAuth } from "@/lib/auth";
 import { usePlatform } from "@/lib/platform";
+import { useStore } from "@/lib/store";
+
 
 
 const bottomNav = [
@@ -41,7 +43,9 @@ export function AppLayout({
   const path = router.state.location.pathname;
   const navigate = useNavigate();
   const { user, ready, logout } = useAuth();
+  const { state, hydrated } = useStore();
   const { s: platform } = usePlatform();
+
   const banner = platform.announcements.find((a) => a.active);
   const { logo } = useAccountLogo(user?.id);
 
@@ -51,9 +55,27 @@ export function AppLayout({
     if (!ready) return;
     if (!user) navigate({ to: "/login" });
     else if (user.role !== "operator") navigate({ to: homeForRole(user.role) });
-  }, [ready, user, navigate]);
+    else if (hydrated && !state.setupDone) navigate({ to: "/canteen-setup" });
+  }, [ready, user, navigate, hydrated, state.setupDone]);
+
+  if (!ready || !hydrated) {
+    return (
+      <div className="flex min-h-screen flex-col bg-surface-high">
+        <div className="h-28 bg-primary" />
+        <div className="mx-auto -mt-10 w-full max-w-container-max space-y-sm px-3 sm:px-4">
+          <div className="h-32 animate-pulse rounded-xl bg-surface-lowest" />
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-square animate-pulse rounded-xl bg-surface-lowest" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user || user.role !== "operator") return null;
+
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-high">

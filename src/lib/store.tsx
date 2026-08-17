@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "./auth";
 
 export type TxType = "sale" | "expense" | "stock" | "capital";
 
@@ -83,9 +84,15 @@ export type State = {
   debtors: Debtor[];
   expenseCategories: ExpenseCategory[];
   terms: TermRecord[];
+  /** False until the operator has done the canteen setup (term + opening cash). */
+  setupDone?: boolean;
 };
 
-const STORAGE_KEY = "smartcanteen.v2";
+const STORAGE_BASE = "smartcanteen.v2";
+/** Every account keeps its own cash book; nothing is shared between logins. */
+export const storeKeyFor = (userId: string | null | undefined) =>
+  userId ? `${STORAGE_BASE}.${userId}` : STORAGE_BASE;
+
 
 /** Deterministic timestamps so server and client render the same demo data. */
 const ANCHOR = Date.UTC(2026, 7, 14, 9, 0, 0);
@@ -167,6 +174,67 @@ const seed: State = {
   ],
 };
 
+seed.setupDone = true;
+
+/** A brand new account starts completely empty — no demo figures at all. */
+export const emptyState = (): State => ({
+  termName: "",
+  termStartedAt: Date.now(),
+  pin: null,
+  autoLockMin: 5,
+  theme: "light",
+  fontScale: 1,
+  payments: [],
+  capital: 0,
+  savingsGoal: 0,
+  expenseCategories: defaultExpenseCategories,
+  items: [],
+  txs: [],
+  debtors: [],
+  terms: [],
+  setupDone: false,
+});
+
+/**
+ * Writes a brand-new operator's cash book straight after their account is
+ * created, so they log in with their opening capital already in place.
+ */
+export function seedAccountBook(
+  userId: string,
+  opts: { capital: number; termName: string; goal?: number },
+) {
+  const base = emptyState();
+  const capital = Math.max(0, Math.round(opts.capital || 0));
+  const next: State = {
+    ...base,
+    termName: opts.termName,
+    capital,
+    savingsGoal: opts.goal || capital * 2,
+    setupDone: capital > 0 && !!opts.termName,
+    txs: capital
+      ? [
+          {
+            id: Math.random().toString(36).slice(2, 10),
+            type: "capital",
+            label: "Opening term capital",
+            amount: capital,
+            ts: Date.now(),
+          },
+        ]
+      : [],
+  };
+  try {
+    localStorage.setItem(storeKeyFor(userId), JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Only the seeded demo operator sees the sample cash book. */
+const DEMO_IDS = new Set(["acc-op-1"]);
+
+
+
 type Ctx = {
   state: State;
   hydrated: boolean;
@@ -213,27 +281,38 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const isToday = (ts: number) => new Date(ts).toDateString() === new Date().toDateString();
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const { user, ready } = useAuth();
+  const userId = user?.id ?? null;
+  const baseFor = useCallback(
+    (id: string | null) => (id && DEMO_IDS.has(id) ? { ...seed } : emptyState()),
+    [],
+  );
   const [state, setState] = useState<State>(seed);
   const [hydrated, setHydrated] = useState(false);
 
+  // Load (or create) the cash book that belongs to the signed-in account.
   useEffect(() => {
+    if (!ready) return;
+    setHydrated(false);
+    const base = baseFor(userId);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setState({ ...seed, ...(JSON.parse(raw) as State) });
+      const raw = localStorage.getItem(storeKeyFor(userId));
+      setState(raw ? { ...base, ...(JSON.parse(raw) as State) } : base);
     } catch {
-      /* ignore */
+      setState(base);
     }
     setHydrated(true);
-  }, []);
+  }, [ready, userId, baseFor]);
 
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(storeKeyFor(userId), JSON.stringify(state));
     } catch {
       /* ignore */
     }
-  }, [state, hydrated]);
+  }, [state, hydrated, userId]);
+
 
   // Theme + font scale live on <html> so every screen follows them.
   useEffect(() => {
@@ -332,6 +411,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       termName,
       capital: amount,
       savingsGoal: goal,
+      setupDone: true,
+      termStartedAt: s.termStartedAt || Date.now(),
       txs: [
         ...s.txs.filter((t) => t.type !== "capital"),
         { id: uid(), type: "capital", label: "Opening term capital", amount, ts: Date.now() },
