@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AgentRouteImport } from './routes/agent'
+import { Route as CanteenSetupRouteImport } from './routes/canteen-setup'
 import { Route as CloseOutRouteImport } from './routes/close-out'
 import { Route as DebtorsRouteImport } from './routes/debtors'
 import { Route as ExpenseRouteImport } from './routes/expense'
@@ -50,6 +51,11 @@ const AdminRoute = AdminRouteImport.update({
 const AgentRoute = AgentRouteImport.update({
   id: '/agent',
   path: '/agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CanteenSetupRoute = CanteenSetupRouteImport.update({
+  id: '/canteen-setup',
+  path: '/canteen-setup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CloseOutRoute = CloseOutRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/agent': typeof AgentRoute
+  '/canteen-setup': typeof CanteenSetupRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/canteen-setup': typeof CanteenSetupRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/agent': typeof AgentRoute
+  '/canteen-setup': typeof CanteenSetupRoute
   '/close-out': typeof CloseOutRoute
   '/debtors': typeof DebtorsRoute
   '/expense': typeof ExpenseRoute
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/agent'
+    | '/canteen-setup'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agent'
+    | '/canteen-setup'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/agent'
+    | '/canteen-setup'
     | '/close-out'
     | '/debtors'
     | '/expense'
@@ -353,6 +365,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AgentRoute: typeof AgentRoute
+  CanteenSetupRoute: typeof CanteenSetupRoute
   CloseOutRoute: typeof CloseOutRoute
   DebtorsRoute: typeof DebtorsRoute
   ExpenseRoute: typeof ExpenseRoute
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/agent'
       fullPath: '/agent'
       preLoaderRoute: typeof AgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/canteen-setup': {
+      id: '/canteen-setup'
+      path: '/canteen-setup'
+      fullPath: '/canteen-setup'
+      preLoaderRoute: typeof CanteenSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/close-out': {
@@ -593,6 +613,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AgentRoute: AgentRoute,
+  CanteenSetupRoute: CanteenSetupRoute,
   CloseOutRoute: CloseOutRoute,
   DebtorsRoute: DebtorsRoute,
   ExpenseRoute: ExpenseRoute,
