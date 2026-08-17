@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import React, { useEffect, useRef, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { Tour, useTour, type TourStep } from "@/components/Tour";
+import { useAuth } from "@/lib/auth";
 import { Icon } from "@/components/Icon";
 import { ugx, shortUgx, useStore } from "@/lib/store";
 
@@ -103,6 +105,7 @@ function Home() {
   };
 
   const capital = state.capital;
+  const { user } = useAuth();
   const goalPct = Math.max(
     0,
     Math.min(100, Math.round((cashAtHand / Math.max(1, state.savingsGoal)) * 100)),
@@ -110,8 +113,10 @@ function Home() {
   const recent = [...state.txs].sort((a, b) => b.ts - a.ts).slice(0, 6);
   const active = tabs[index]!;
 
+  const tour = useTour("operator-home", user?.id, true);
+
   const hero = (
-    <div className="card p-0">
+    <div className="card p-0" data-tour="balance">
       <div className="relative px-md pb-md pt-8">
         <span className="absolute left-0 top-0 rounded-br-lg rounded-tl-lg bg-secondary-container px-3 py-1 text-[11px] font-bold text-on-secondary-container">
           Cash at Hand
@@ -168,8 +173,15 @@ function Home() {
 
   return (
     <AppLayout title="SmartCanteen" hero={hero}>
+      <Tour steps={tourSteps} open={tour.open} onClose={tour.finish} />
+      <button
+        onClick={tour.restart}
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-outline-variant text-sm font-bold text-primary"
+      >
+        <Icon name="tips_and_updates" className="text-[18px]" /> Show me around this app
+      </button>
       <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-        <div role="tablist" aria-label="Shortcuts" className="flex min-w-max gap-1 border-b border-outline-variant/50">
+        <div role="tablist" aria-label="Shortcuts" data-tour="tabs" className="flex min-w-max gap-1 border-b border-outline-variant/50">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -190,6 +202,7 @@ function Home() {
       </div>
 
       <section
+        data-tour="tiles"
         className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-sm lg:grid-cols-6"
         onTouchStart={(e) => {
           const t = e.touches[0]!;
@@ -248,7 +261,7 @@ function Home() {
 
       <section>
         <div className="mb-sm flex items-end justify-between px-1">
-          <h2 className="label-bold text-on-surface-variant">Recent transactions</h2>
+          <h2 className="label-bold text-on-surface-variant" data-tour="recent">Recent transactions</h2>
           <Link to="/history" className="text-sm font-bold text-primary hover:underline">
             See all
           </Link>
@@ -301,6 +314,29 @@ function Home() {
     </AppLayout>
   );
 }
+
+const tourSteps: TourStep[] = [
+  {
+    id: "balance",
+    title: "Your Cash at Hand",
+    body: "This is the money you should be holding right now — opening cash, plus sales, minus stock and expenses. If the cash in your box matches this, your book is correct.",
+  },
+  {
+    id: "tabs",
+    title: "Four simple sections",
+    body: "MONEY IN is for sales and credit paid, MONEY OUT is for buying stock and expenses, MANAGE holds stock, reports and settings. Swipe left or right to move between them.",
+  },
+  {
+    id: "tiles",
+    title: "One tap per action",
+    body: "Each tile opens a short screen with a keypad. Tell the system what happened and it does the arithmetic — you never add up anything yourself.",
+  },
+  {
+    id: "recent",
+    title: "Everything you entered",
+    body: "Your last entries appear here so you can spot a mistake early. Tap See all for the full history, term comparisons and Excel or PDF exports.",
+  },
+];
 
 /** Tiles link to both static and dynamic routes, so params are passed loosely. */
 const TileLink = Link as unknown as React.ComponentType<Record<string, unknown>>;
