@@ -195,6 +195,41 @@ export const emptyState = (): State => ({
   setupDone: false,
 });
 
+/**
+ * Writes a brand-new operator's cash book straight after their account is
+ * created, so they log in with their opening capital already in place.
+ */
+export function seedAccountBook(
+  userId: string,
+  opts: { capital: number; termName: string; goal?: number },
+) {
+  const base = emptyState();
+  const capital = Math.max(0, Math.round(opts.capital || 0));
+  const next: State = {
+    ...base,
+    termName: opts.termName,
+    capital,
+    savingsGoal: opts.goal || capital * 2,
+    setupDone: capital > 0 && !!opts.termName,
+    txs: capital
+      ? [
+          {
+            id: Math.random().toString(36).slice(2, 10),
+            type: "capital",
+            label: "Opening term capital",
+            amount: capital,
+            ts: Date.now(),
+          },
+        ]
+      : [],
+  };
+  try {
+    localStorage.setItem(storeKeyFor(userId), JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Only the seeded demo operator sees the sample cash book. */
 const DEMO_IDS = new Set(["acc-op-1"]);
 

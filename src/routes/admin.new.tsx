@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Card, Field, PrimaryButton, SectionTitle, SelectField } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
+import { seedAccountBook } from "@/lib/store";
+import { emailLink, fillTemplate, inviteMessage, loginLink, whatsappLink } from "@/lib/invite";
 import {
   categoryLabels,
   usePlatform,
@@ -28,7 +30,7 @@ export const Route = createFileRoute("/admin/new")({
   component: NewAccount,
 });
 
-const steps = ["Business", "Template & term", "Access", "Invite"] as const;
+const steps = ["Business", "Template & term", "Access", "Opening capital", "Invite"] as const;
 
 function NewAccount() {
   const { user, createOperator } = useAuth();
@@ -50,8 +52,13 @@ function NewAccount() {
     notes: "",
     cloneFrom: "",
     csv: "",
+    capital: "",
+    goal: "",
+    termName: `Term 1, ${new Date().getFullYear()}`,
   });
-  const [invite, setInvite] = useState("");
+  const [invite, setInvite] = useState<{ wa: string | null; mail: string | null; msg: string } | null>(
+    null,
+  );
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const set = (patch: Partial<typeof f>) => setF((prev) => ({ ...prev, ...patch }));
@@ -81,6 +88,14 @@ function NewAccount() {
 
   const finish = () => {
     if (busy) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
+      setError("Enter a valid login email for the operator.");
+      return;
+    }
+    if (f.password.length < 6) {
+      setError("The password needs at least 6 characters.");
+      return;
+    }
     setBusy(true);
     const res = createOperator({
       name: f.ownerName,
@@ -122,13 +137,26 @@ function NewAccount() {
         status: "pending",
       });
     }
-    const link = `https://smatcanteen.lovable.app/login`;
-    const msg = s.settings.welcomeTemplate
-      .replace("{name}", f.ownerName)
-      .replace("{link}", link)
-      .replace("{email}", f.email.trim().toLowerCase());
-    setInvite(`https://wa.me/${f.phone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`);
-    setStep(3);
+    // Give the operator a clean book that already holds their opening capital.
+    seedAccountBook(res.account.id, {
+      capital: Number(f.capital) || 0,
+      termName: f.termName.trim(),
+      goal: Number(f.goal) || 0,
+    });
+
+    const details = {
+      name: f.ownerName,
+      email: f.email,
+      password: f.password,
+      school: f.school,
+      phone: f.phone,
+      capital: Number(f.capital) || 0,
+      termName: f.termName,
+    };
+    const template = s.settings.welcomeTemplate?.trim();
+    const msg = template ? fillTemplate(template, details) : inviteMessage(details);
+    setInvite({ wa: whatsappLink(f.phone, msg), mail: emailLink(f.email, msg), msg });
+    setStep(4);
     setBusy(false);
   };
 
