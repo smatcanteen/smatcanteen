@@ -83,9 +83,15 @@ export type State = {
   debtors: Debtor[];
   expenseCategories: ExpenseCategory[];
   terms: TermRecord[];
+  /** False until the operator has done the canteen setup (term + opening cash). */
+  setupDone?: boolean;
 };
 
-const STORAGE_KEY = "smartcanteen.v2";
+const STORAGE_BASE = "smartcanteen.v2";
+/** Every account keeps its own cash book; nothing is shared between logins. */
+export const storeKeyFor = (userId: string | null | undefined) =>
+  userId ? `${STORAGE_BASE}.${userId}` : STORAGE_BASE;
+
 
 /** Deterministic timestamps so server and client render the same demo data. */
 const ANCHOR = Date.UTC(2026, 7, 14, 9, 0, 0);
