@@ -61,9 +61,9 @@ function Login() {
     if (ready && user) navigate({ to: homeForRole(user.role) });
   }, [ready, user, navigate]);
 
-  const submit = () => {
+  const submit = async () => {
     setBusy(true);
-    const res = login(email, password);
+    const res = await login(email, password);
     if (!res.ok) {
       setBusy(false);
       setError(res.error ?? "Could not sign you in.");

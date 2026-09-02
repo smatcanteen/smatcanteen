@@ -96,7 +96,7 @@ function NewAccount() {
     setStep((x) => x + 1);
   };
 
-  const finish = () => {
+  const finish = async () => {
     if (busy) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
       setError("Enter a valid login email for the operator.");
@@ -107,7 +107,7 @@ function NewAccount() {
       return;
     }
     setBusy(true);
-    const res = createOperator({
+    const res = await createOperator({
       name: f.ownerName,
       email: f.email,
       password: f.password,
