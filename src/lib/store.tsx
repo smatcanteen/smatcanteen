@@ -291,17 +291,40 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   // Load (or create) the cash book that belongs to the signed-in account.
+  // Local storage answers instantly (so the app works offline), then the
+  // cloud copy is merged in when it is newer.
   useEffect(() => {
     if (!ready) return;
+    let alive = true;
     setHydrated(false);
     const base = baseFor(userId);
+    let local: State = base;
     try {
       const raw = localStorage.getItem(storeKeyFor(userId));
-      setState(raw ? { ...base, ...(JSON.parse(raw) as State) } : base);
+      if (raw) local = { ...base, ...(JSON.parse(raw) as State) };
     } catch {
-      setState(base);
+      /* ignore */
     }
+    setState(local);
     setHydrated(true);
+
+    if (!userId) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("canteen_books")
+        .select("data, updated_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!alive || !data?.data) return;
+      const cloud = data.data as Partial<State>;
+      const cloudAt = new Date(data.updated_at).getTime();
+      const localAt = local.savedAt ?? 0;
+      if (cloudAt > localAt) setState({ ...base, ...cloud, savedAt: cloudAt });
+    })();
+
+    return () => {
+      alive = false;
+    };
   }, [ready, userId, baseFor]);
 
   useEffect(() => {
@@ -311,7 +334,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    if (!userId) return;
+    // Debounced push; a failure just leaves the local copy authoritative and
+    // the next change (or reconnection) retries it.
+    const t = setTimeout(() => {
+      void supabase
+        .from("canteen_books")
+        .upsert(
+          { user_id: userId, data: state as unknown as Record<string, unknown>, updated_at: new Date().toISOString() },
+          { onConflict: "user_id" },
+        );
+    }, 800);
+    return () => clearTimeout(t);
   }, [state, hydrated, userId]);
+
 
 
   // Theme + font scale live on <html> so every screen follows them.
