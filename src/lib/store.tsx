@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "./auth";
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export type TxType = "sale" | "expense" | "stock" | "capital";
 
@@ -291,27 +293,68 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   // Load (or create) the cash book that belongs to the signed-in account.
+  // Local storage answers instantly (so the app works offline), then the
+  // cloud copy is merged in when it is newer.
   useEffect(() => {
     if (!ready) return;
+    let alive = true;
     setHydrated(false);
     const base = baseFor(userId);
+    let local: State = base;
     try {
       const raw = localStorage.getItem(storeKeyFor(userId));
-      setState(raw ? { ...base, ...(JSON.parse(raw) as State) } : base);
+      if (raw) local = { ...base, ...(JSON.parse(raw) as State) };
     } catch {
-      setState(base);
+      /* ignore */
     }
+    setState(local);
     setHydrated(true);
+
+    if (!userId) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("canteen_books")
+        .select("data, updated_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!alive || !data?.data) return;
+      const cloud = data.data as Partial<State>;
+      const cloudAt = new Date(data.updated_at).getTime();
+      const localAt = Number(localStorage.getItem(`${storeKeyFor(userId)}.updatedAt`) ?? 0);
+      if (cloudAt > localAt) {
+        setState({ ...base, ...cloud });
+        localStorage.setItem(`${storeKeyFor(userId)}.updatedAt`, String(cloudAt));
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
   }, [ready, userId, baseFor]);
 
   useEffect(() => {
     if (!hydrated) return;
+    const updatedAt = Date.now();
     try {
       localStorage.setItem(storeKeyFor(userId), JSON.stringify(state));
+      localStorage.setItem(`${storeKeyFor(userId)}.updatedAt`, String(updatedAt));
     } catch {
       /* ignore */
     }
+    if (!userId) return;
+    // Debounced push; a failure just leaves the local copy authoritative and
+    // the next change (or reconnection) retries it.
+    const t = setTimeout(() => {
+      void supabase
+        .from("canteen_books")
+        .upsert(
+          { user_id: userId, data: state as unknown as Json, updated_at: new Date(updatedAt).toISOString() },
+          { onConflict: "user_id" },
+        );
+    }, 800);
+    return () => clearTimeout(t);
   }, [state, hydrated, userId]);
+
 
 
   // Theme + font scale live on <html> so every screen follows them.

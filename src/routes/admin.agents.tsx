@@ -35,7 +35,7 @@ function Agents() {
   const avgChurn =
     s.agents.reduce((a, x) => a + agentChurnRate(x.id, s.tenants), 0) / Math.max(1, s.agents.length);
 
-  const register = () => {
+  const register = async () => {
     if (busy) return;
     const email = f.email.trim().toLowerCase();
     if (!f.name.trim() || !email) {
@@ -47,7 +47,7 @@ function Agents() {
       return;
     }
     setBusy(true);
-    const acc = createAccount({
+    const acc = await createAccount({
       name: f.name,
       email,
       password: f.password,

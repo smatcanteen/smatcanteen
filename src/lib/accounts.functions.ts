@@ -172,3 +172,43 @@ export const verifyMyPin = createServerFn({ method: "POST" })
     const candidate = await hashPin(data.pin, salt);
     return candidate === stored ? { ok: true as const } : { ok: false as const, error: "Wrong PIN." };
   });
+
+/**
+ * First-run bootstrap. Creates the platform admin the very first time the app
+ * is opened, so there is always someone who can onboard everyone else.
+ * Does nothing once any account exists.
+ */
+export const ensureBootstrap = createServerFn({ method: "POST" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { count } = await supabaseAdmin
+    .from("profiles")
+    .select("id", { count: "exact", head: true });
+  if ((count ?? 0) > 0) return { ok: true as const, created: false };
+
+  const seeds = [
+    { email: "admin@smartcanteen.app", password: "admin1234", name: "Shadai Barbra", role: "admin", school: "SmartCanteen HQ", phone: "256700000001" },
+    { email: "support@smartcanteen.app", password: "support1234", name: "Joan Atim", role: "support", school: "SmartCanteen HQ", phone: "256700000010" },
+    { email: "finance@smartcanteen.app", password: "finance1234", name: "Denis Mugisha", role: "finance", school: "SmartCanteen HQ", phone: "256700000011" },
+  ] as const;
+
+  for (const s of seeds) {
+    const created = await supabaseAdmin.auth.admin.createUser({
+      email: s.email,
+      password: s.password,
+      email_confirm: true,
+      user_metadata: { full_name: s.name },
+    });
+    const id = created.data.user?.id;
+    if (!id) continue;
+    await supabaseAdmin.from("profiles").insert({
+      id,
+      full_name: s.name,
+      phone: s.phone,
+      email: s.email,
+      school: s.school,
+      otp_pending: false,
+    });
+    await supabaseAdmin.from("user_roles").insert({ user_id: id, role: s.role });
+  }
+  return { ok: true as const, created: true };
+});

@@ -45,8 +45,8 @@ function Onboarding() {
   const [buy, setBuy] = useState("");
   const [sell, setSell] = useState("");
 
-  const saveAccount = () => {
-    const res = createOperator({ ...account, school: shop.trim() || "New canteen" });
+  const saveAccount = async () => {
+    const res = await createOperator({ ...account, school: shop.trim() || "New canteen" });
     if (!res.ok) {
       setAccountError(res.error ?? "Could not create the account.");
       return false;
@@ -55,8 +55,8 @@ function Onboarding() {
     return true;
   };
 
-  const finish = () => {
-    if (!saveAccount()) return;
+  const finish = async () => {
+    if (!(await saveAccount())) return;
     setCapital(Number(capital) || 0, term, Number(goal) || 0);
     if (itemName.trim()) {
       addStockItems([

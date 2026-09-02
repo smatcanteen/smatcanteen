@@ -4,11 +4,19 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
-
   useState,
   type ReactNode,
 } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  deleteAccount as deleteAccountFn,
+  ensureBootstrap,
+  normalisePhone,
+  phoneEmail,
+  provisionAccount,
+  resetOneTimePassword,
+  setAccountActive,
+} from "./accounts.functions";
 
 export type Role = "admin" | "support" | "finance" | "operator" | "agent";
 
@@ -24,252 +32,244 @@ export const roleLabels: Record<Role, string> = {
 export const homeForRole = (role: Role) =>
   role === "operator" ? "/" : role === "agent" ? "/agent" : "/admin";
 
-export const isAdminRole = (role: Role) => role === "admin" || role === "support" || role === "finance";
+export const isAdminRole = (role: Role) =>
+  role === "admin" || role === "support" || role === "finance";
 
 export type Account = {
   id: string;
   name: string;
   email: string;
-  password: string;
+  /** Only present right after creation — the one-time password to hand over. */
+  password?: string;
   role: Role;
   /** School / canteen the operator runs (blank for the platform admin). */
   school: string;
   phone?: string;
   createdAt: number;
   active: boolean;
+  /** True until the person has replaced the one-time password with a PIN. */
+  otpPending?: boolean;
 };
 
-type AuthState = { accounts: Account[]; sessionId: string | null };
+type ProfileRow = {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  school: string;
+  active: boolean;
+  otp_pending: boolean;
+  created_at: string;
+};
 
-const KEY = "smartcanteen.auth.v2";
-const uid = () => Math.random().toString(36).slice(2, 10);
-const ANCHOR = Date.UTC(2026, 7, 14, 9, 0, 0);
+type CreateInput = {
+  name: string;
+  email?: string;
+  password?: string;
+  school: string;
+  phone?: string;
+};
 
-/** Demo directory. One platform admin, plus the canteen operators they oversee. */
-export const seedAccounts: Account[] = [
-  {
-    id: "acc-admin",
-    name: "Shadai Barbra",
-    email: "admin@smartcanteen.app",
-    password: "admin1234",
-    role: "admin",
-    school: "SmartCanteen HQ",
-    phone: "+256 700 000 001",
-    createdAt: ANCHOR - 200 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-support",
-    name: "Joan Atim",
-    email: "support@smartcanteen.app",
-    password: "support1234",
-    role: "support",
-    school: "SmartCanteen HQ",
-    phone: "+256 700 000 010",
-    createdAt: ANCHOR - 150 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-finance",
-    name: "Denis Mugisha",
-    email: "finance@smartcanteen.app",
-    password: "finance1234",
-    role: "finance",
-    school: "SmartCanteen HQ",
-    phone: "+256 700 000 011",
-    createdAt: ANCHOR - 150 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-agent-1",
-    name: "Moses Kigozi",
-    email: "agent@smartcanteen.app",
-    password: "agent1234",
-    role: "agent",
-    school: "Kampala Central zone",
-    phone: "+256 700 000 020",
-    createdAt: ANCHOR - 100 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-agent-2",
-    name: "Sarah Kembabazi",
-    email: "sarah.agent@smartcanteen.app",
-    password: "agent1234",
-    role: "agent",
-    school: "Wakiso zone",
-    phone: "+256 700 000 021",
-    createdAt: ANCHOR - 40 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-op-1",
-    name: "Talemwa Raymond",
-    email: "operator@smartcanteen.app",
-    password: "canteen1234",
-    role: "operator",
-    school: "Kampala Parents SS",
-    phone: "+256 700 000 002",
-    createdAt: ANCHOR - 120 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-op-2",
-    name: "Grace Nabirye",
-    email: "grace@smartcanteen.app",
-    password: "canteen1234",
-    role: "operator",
-    school: "St. Mary's SS",
-    phone: "+256 700 000 003",
-    createdAt: ANCHOR - 90 * 86400000,
-    active: true,
-  },
-  {
-    id: "acc-op-3",
-    name: "Peter Wanyama",
-    email: "peter@smartcanteen.app",
-    password: "canteen1234",
-    role: "operator",
-    school: "Kololo High",
-    phone: "+256 700 000 004",
-    createdAt: ANCHOR - 60 * 86400000,
-    active: true,
-  },
-];
+type Result = { ok: boolean; error?: string; account?: Account };
 
 type Ctx = {
   accounts: Account[];
   user: Account | null;
   ready: boolean;
-  login: (email: string, password: string) => { ok: boolean; role?: Role; error?: string };
-  logout: () => void;
-  /** Creates an operator account; it appears in the admin dashboard immediately. */
-  createOperator: (input: {
-    name: string;
-    email: string;
-    password: string;
-    school: string;
-    phone?: string;
-  }) => { ok: boolean; error?: string; account?: Account };
-  /** Creates any account (agent, support staff, finance, operator). */
-  createAccount: (input: {
-    name: string;
-    email: string;
-    password: string;
-    school: string;
-    phone?: string;
-    role: Role;
-  }) => { ok: boolean; error?: string; account?: Account };
-  toggleAccount: (id: string) => void;
+  login: (identifier: string, password: string) => Promise<{ ok: boolean; role?: Role; error?: string }>;
+  logout: () => Promise<void>;
+  createOperator: (input: CreateInput) => Promise<Result>;
+  createAccount: (input: CreateInput & { role: Role }) => Promise<Result>;
+  toggleAccount: (id: string) => Promise<void>;
+  removeAccount: (id: string) => Promise<{ ok: boolean; error?: string }>;
+  resendOtp: (id: string) => Promise<{ ok: boolean; otp?: string; error?: string }>;
+  refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<Ctx | null>(null);
 
+const toAccount = (p: ProfileRow, role: Role): Account => ({
+  id: p.id,
+  name: p.full_name,
+  email: p.email ?? "",
+  role,
+  school: p.school,
+  ...(p.phone ? { phone: p.phone } : {}),
+  createdAt: new Date(p.created_at).getTime(),
+  active: p.active,
+  otpPending: p.otp_pending,
+});
+
+/** Staff sign in with an email; operators and agents sign in with a phone number. */
+const loginEmailFor = (identifier: string) => {
+  const v = identifier.trim();
+  return v.includes("@") ? v.toLowerCase() : phoneEmail(v);
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AuthState>({ accounts: seedAccounts, sessionId: null });
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [user, setUser] = useState<Account | null>(null);
   const [ready, setReady] = useState(false);
-  const takenRef = useRef<Set<string>>(new Set(seedAccounts.map((a) => a.email)));
 
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<AuthState>;
-        const accounts = parsed.accounts?.length ? parsed.accounts : seedAccounts;
-        takenRef.current = new Set(accounts.map((a) => a.email.toLowerCase()));
-        setData({ accounts, sessionId: parsed.sessionId ?? null });
-      }
-
-    } catch {
-      /* ignore */
+  const loadDirectory = useCallback(async (uid: string | null) => {
+    if (!uid) {
+      setUser(null);
+      setAccounts([]);
+      return;
     }
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      localStorage.setItem(KEY, JSON.stringify(data));
-    } catch {
-      /* ignore */
-    }
-  }, [data, ready]);
-
-  const login = useCallback<Ctx["login"]>(
-    (email, password) => {
-      const acc = data.accounts.find(
-        (a) => a.email.toLowerCase() === email.trim().toLowerCase() && a.password === password,
-      );
-      if (!acc) return { ok: false, error: "Email or password is not correct." };
-      if (!acc.active) return { ok: false, error: "This account has been paused by the administrator." };
-      setData((d) => ({ ...d, sessionId: acc.id }));
-      return { ok: true, role: acc.role };
-    },
-    [data.accounts],
-  );
-
-  const logout = useCallback(() => setData((d) => ({ ...d, sessionId: null })), []);
-
-  const createAccount = useCallback<Ctx["createAccount"]>((input) => {
-    const email = input.email.trim().toLowerCase();
-    const name = input.name.trim();
-    if (!name) return { ok: false, error: "Please enter the person's full name." };
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Please enter a valid email address." };
-    if (input.password.length < 6) return { ok: false, error: "The password needs at least 6 characters." };
-
-    const account: Account = {
-      id: uid(),
-      name,
-      email,
-      password: input.password,
-      role: input.role,
-      school: input.school.trim(),
-      ...(input.phone ? { phone: input.phone.trim() } : {}),
-      createdAt: Date.now(),
-      active: true,
-    };
-
-    // A ref of emails already handed out guards rapid double-submits, and the
-    // updater itself never appends the same email twice.
-    if (takenRef.current.has(email)) {
-      return { ok: false, error: "An account with that email already exists." };
-    }
-    takenRef.current.add(email);
-    setData((d) =>
-      d.accounts.some((a) => a.email.toLowerCase() === email)
-        ? d
-        : { ...d, accounts: [...d.accounts, account] },
+    const [{ data: profiles }, { data: roles }] = await Promise.all([
+      supabase.from("profiles").select("*"),
+      supabase.from("user_roles").select("user_id, role"),
+    ]);
+    const roleFor = new Map<string, Role>();
+    (roles ?? []).forEach((r) => roleFor.set(r.user_id, r.role as Role));
+    const list = (profiles ?? []).map((p) =>
+      toAccount(p as ProfileRow, roleFor.get(p.id) ?? "operator"),
     );
-    return { ok: true, account };
+    setAccounts(list);
+    setUser(list.find((a) => a.id === uid) ?? null);
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+
+    // Keep the session in sync; the directory reload happens outside the callback.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!alive) return;
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setAccounts([]);
+        return;
+      }
+      if (session?.user) void loadDirectory(session.user.id);
+    });
+
+    (async () => {
+      try {
+        await ensureBootstrap();
+      } catch {
+        /* bootstrap is best-effort */
+      }
+      const { data } = await supabase.auth.getSession();
+      if (!alive) return;
+      await loadDirectory(data.session?.user.id ?? null);
+      if (alive) setReady(true);
+    })();
+
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [loadDirectory]);
+
+  const login = useCallback<Ctx["login"]>(async (identifier, password) => {
+    const email = loginEmailFor(identifier);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user) {
+      return { ok: false, error: "Phone/email or password is not correct." };
+    }
+    const [{ data: profile }, { data: roleRows }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", data.user.id).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", data.user.id),
+    ]);
+    if (profile && !profile.active) {
+      await supabase.auth.signOut();
+      return { ok: false, error: "This account has been paused by the administrator." };
+    }
+    const role = ((roleRows ?? [])[0]?.role as Role) ?? "operator";
+    await supabase.from("profiles").update({ last_login_at: new Date().toISOString() }).eq("id", data.user.id);
+    await loadDirectory(data.user.id);
+    return { ok: true, role };
+  }, [loadDirectory]);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setAccounts([]);
+  }, []);
+
+  const createAccount = useCallback<Ctx["createAccount"]>(
+    async (input) => {
+      const name = input.name.trim();
+      const phone = normalisePhone(input.phone ?? "");
+      if (!name) return { ok: false, error: "Please enter the person's full name." };
+      if (phone.length < 9) return { ok: false, error: "Please enter a valid phone number." };
+
+      const res = await provisionAccount({
+        data: {
+          name,
+          phone,
+          role: input.role,
+          school: input.school ?? "",
+          ...(input.email?.trim() ? { email: input.email.trim().toLowerCase() } : {}),
+        },
+      });
+      if (!res.ok) return { ok: false, error: res.error };
+
+      const account: Account = {
+        id: res.id,
+        name,
+        email: input.email?.trim().toLowerCase() ?? "",
+        password: res.otp,
+        role: input.role,
+        school: input.school ?? "",
+        phone: res.phone,
+        createdAt: Date.now(),
+        active: true,
+        otpPending: true,
+      };
+      setAccounts((list) => [...list, account]);
+      return { ok: true, account };
+    },
+    [],
+  );
 
   const createOperator = useCallback<Ctx["createOperator"]>(
     (input) => createAccount({ ...input, role: "operator" }),
     [createAccount],
   );
 
+  const toggleAccount = useCallback(
+    async (id: string) => {
+      const current = accounts.find((a) => a.id === id);
+      const next = !(current?.active ?? true);
+      setAccounts((list) => list.map((a) => (a.id === id ? { ...a, active: next } : a)));
+      await setAccountActive({ data: { id, active: next } });
+    },
+    [accounts],
+  );
 
-  const toggleAccount = useCallback((id: string) => {
-    setData((d) => ({
-      ...d,
-      accounts: d.accounts.map((a) => (a.id === id ? { ...a, active: !a.active } : a)),
-    }));
+  const removeAccount = useCallback<Ctx["removeAccount"]>(async (id) => {
+    const res = await deleteAccountFn({ data: { id } });
+    if (res.ok) setAccounts((list) => list.filter((a) => a.id !== id));
+    return res.ok ? { ok: true } : { ok: false, error: res.error };
   }, []);
+
+  const resendOtp = useCallback<Ctx["resendOtp"]>(async (id) => {
+    const res = await resetOneTimePassword({ data: { id } });
+    return res.ok ? { ok: true, otp: res.otp } : { ok: false, error: res.error };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const { data } = await supabase.auth.getSession();
+    await loadDirectory(data.session?.user.id ?? null);
+  }, [loadDirectory]);
 
   const value = useMemo<Ctx>(
     () => ({
-      accounts: data.accounts,
-      user: data.accounts.find((a) => a.id === data.sessionId) ?? null,
+      accounts,
+      user,
       ready,
       login,
       logout,
       createOperator,
       createAccount,
       toggleAccount,
+      removeAccount,
+      resendOtp,
+      refresh,
     }),
-    [data, ready, login, logout, createOperator, createAccount, toggleAccount],
+    [accounts, user, ready, login, logout, createOperator, createAccount, toggleAccount, removeAccount, resendOtp, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
