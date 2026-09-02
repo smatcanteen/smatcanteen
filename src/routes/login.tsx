@@ -70,7 +70,7 @@ function Login() {
       return;
     }
     setError("");
-    navigate({ to: homeForRole(res.role!) });
+    navigate({ to: homeForRole(res.role ?? "operator") });
   };
 
   const useDemo = (e: string, p: string) => {

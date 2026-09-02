@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "./auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export type TxType = "sale" | "expense" | "stock" | "capital";
 
@@ -318,8 +319,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!alive || !data?.data) return;
       const cloud = data.data as Partial<State>;
       const cloudAt = new Date(data.updated_at).getTime();
-      const localAt = local.savedAt ?? 0;
-      if (cloudAt > localAt) setState({ ...base, ...cloud, savedAt: cloudAt });
+      const localAt = Number(localStorage.getItem(`${storeKeyFor(userId)}.updatedAt`) ?? 0);
+      if (cloudAt > localAt) {
+        setState({ ...base, ...cloud });
+        localStorage.setItem(`${storeKeyFor(userId)}.updatedAt`, String(cloudAt));
+      }
     })();
 
     return () => {
@@ -329,8 +333,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
+    const updatedAt = Date.now();
     try {
       localStorage.setItem(storeKeyFor(userId), JSON.stringify(state));
+      localStorage.setItem(`${storeKeyFor(userId)}.updatedAt`, String(updatedAt));
     } catch {
       /* ignore */
     }
@@ -341,7 +347,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       void supabase
         .from("canteen_books")
         .upsert(
-          { user_id: userId, data: state as unknown as Record<string, unknown>, updated_at: new Date().toISOString() },
+          { user_id: userId, data: state as unknown as Record<string, unknown>, updated_at: new Date(updatedAt).toISOString() },
           { onConflict: "user_id" },
         );
     }, 800);
