@@ -348,7 +348,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       void supabase
         .from("canteen_books")
         .upsert(
-          { user_id: userId, data: state as unknown as Record<string, unknown>, updated_at: new Date(updatedAt).toISOString() },
+          { user_id: userId, data: state as unknown as Json, updated_at: new Date(updatedAt).toISOString() },
           { onConflict: "user_id" },
         );
     }, 800);
