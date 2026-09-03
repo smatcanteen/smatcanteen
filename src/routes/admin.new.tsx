@@ -327,12 +327,16 @@ function NewAccount() {
                 <dd className="truncate font-semibold">{loginLink.replace("https://", "")}</dd>
               </div>
               <div className="flex justify-between gap-2">
+                <dt className="text-on-surface-variant">Phone (their login)</dt>
+                <dd className="truncate font-semibold">{f.phone.trim() || "—"}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
                 <dt className="text-on-surface-variant">Email</dt>
                 <dd className="truncate font-semibold">{f.email.trim().toLowerCase() || "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-on-surface-variant">Password</dt>
-                <dd className="font-semibold">{f.password}</dd>
+                <dt className="text-on-surface-variant">One-time password</dt>
+                <dd className="font-semibold tracking-widest">{f.password || "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-on-surface-variant">Opening capital</dt>
