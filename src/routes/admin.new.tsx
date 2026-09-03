@@ -253,21 +253,23 @@ function NewAccount() {
 
       {step === 2 && (
         <Card className="space-y-sm">
-          <div className="grid gap-sm sm:grid-cols-2">
-            <Field label="Login email" type="email" value={f.email} onChange={(e) => set({ email: e.target.value })} />
-            <Field
-              label="Auto-generated password"
-              value={f.password}
-              hint="At least 6 characters."
-              onChange={(e) => set({ password: e.target.value })}
-            />
+          <div className="rounded-lg border border-outline-variant/60 bg-surface-low p-sm">
+            <p className="label-bold text-on-surface-variant">How this operator signs in</p>
+            <p className="mt-1 text-sm text-on-surface">
+              They log in with their phone number{" "}
+              <span className="font-bold">{f.phone.trim() || "—"}</span> and a one-time password
+              SmartCanteen generates when you create the account. You send it to them on WhatsApp on
+              the last step. After their first login they set a private PIN in Settings and unlock
+              the app with that.
+            </p>
           </div>
-          <button
-            onClick={() => set({ password: `sc${Math.random().toString(36).slice(2, 8)}` })}
-            className="min-h-11 rounded-full border-2 border-primary px-4 text-sm font-bold text-primary"
-          >
-            <Icon name="autorenew" className="text-[18px]" /> Generate password
-          </button>
+          <Field
+            label="Email address (optional)"
+            type="email"
+            hint="Many operators have no email — leave this blank and use WhatsApp."
+            value={f.email}
+            onChange={(e) => set({ email: e.target.value })}
+          />
           <SectionTitle>Starting stock — bulk CSV (name,qty,buy,sell)</SectionTitle>
           <textarea
             value={f.csv}
@@ -282,6 +284,7 @@ function NewAccount() {
           {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
         </Card>
       )}
+
 
       {step === 3 && (
         <Card className="space-y-sm">
