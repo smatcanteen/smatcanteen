@@ -5,7 +5,9 @@
 
 export type InviteDetails = {
   name: string;
-  email: string;
+  /** Optional — many operators are onboarded on WhatsApp only. */
+  email?: string;
+  /** The one-time password the operator uses for their first login. */
   password: string;
   school?: string;
   phone?: string;
