@@ -77,20 +77,21 @@ function NewAccount() {
     });
   };
 
+  const emailOk = (v: string) => !v.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const phoneOk = (v: string) => v.replace(/\D/g, "").length >= 9;
+
   const next = () => {
     if (step === 0 && (!f.ownerName.trim() || !f.school.trim())) {
       setError("Owner name and school name are required.");
       return;
     }
-    if (step === 2) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
-        setError("Enter a valid login email for the operator.");
-        return;
-      }
-      if (f.password.length < 6) {
-        setError("The password needs at least 6 characters.");
-        return;
-      }
+    if (step === 0 && !phoneOk(f.phone)) {
+      setError("Enter the operator's phone number — it is their login.");
+      return;
+    }
+    if (step === 2 && !emailOk(f.email)) {
+      setError("That email address does not look right. You can also leave it blank.");
+      return;
     }
     setError("");
     setStep((x) => x + 1);
@@ -98,19 +99,18 @@ function NewAccount() {
 
   const finish = async () => {
     if (busy) return;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
-      setError("Enter a valid login email for the operator.");
+    if (!phoneOk(f.phone)) {
+      setError("Enter the operator's phone number — it is their login.");
       return;
     }
-    if (f.password.length < 6) {
-      setError("The password needs at least 6 characters.");
+    if (!emailOk(f.email)) {
+      setError("That email address does not look right. You can also leave it blank.");
       return;
     }
     setBusy(true);
     const res = await createOperator({
       name: f.ownerName,
       email: f.email,
-      password: f.password,
       school: f.school,
       phone: f.phone,
     });
@@ -120,13 +120,16 @@ function NewAccount() {
       return;
     }
     setError("");
+    const otp = res.account.password ?? "";
+    const phone = res.account.phone ?? f.phone;
+    set({ password: otp, phone });
     const trialDays = Number(f.trialDays) || 0;
     addTenant({
       accountId: res.account.id,
       canteenName: f.canteenName.trim() || `${f.ownerName.trim()}'s canteen`,
       school: f.school,
       ownerName: f.ownerName,
-      phone: f.phone,
+      phone,
       category: f.category,
       zone: f.zone,
       agentId: f.agentId || null,
@@ -157,18 +160,19 @@ function NewAccount() {
     const details = {
       name: f.ownerName,
       email: f.email,
-      password: f.password,
+      password: otp,
+      phone,
       school: f.school,
-      phone: f.phone,
       capital: Number(f.capital) || 0,
       termName: f.termName,
     };
     const template = s.settings.welcomeTemplate?.trim();
     const msg = template ? fillTemplate(template, details) : inviteMessage(details);
-    setInvite({ wa: whatsappLink(f.phone, msg), mail: emailLink(f.email, msg), msg });
+    setInvite({ wa: whatsappLink(phone, msg), mail: emailLink(f.email, msg), msg });
     setStep(4);
     setBusy(false);
   };
+
 
 
   return (
