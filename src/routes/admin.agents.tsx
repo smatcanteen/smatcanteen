@@ -27,10 +27,11 @@ export const Route = createFileRoute("/admin/agents")({
 function Agents() {
   const { s, addAgent, updateAgent, certifyAgent, updateSettings } = usePlatform();
   const { createAccount } = useAuth();
-  const [f, setF] = useState({ name: "", phone: "", email: "", territory: zones[0]!, password: "agent1234" });
+  const [f, setF] = useState({ name: "", phone: "", email: "", territory: zones[0]! });
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [otp, setOtp] = useState<{ phone: string; code: string } | null>(null);
 
   const avgChurn =
     s.agents.reduce((a, x) => a + agentChurnRate(x.id, s.tenants), 0) / Math.max(1, s.agents.length);
@@ -38,19 +39,22 @@ function Agents() {
   const register = async () => {
     if (busy) return;
     const email = f.email.trim().toLowerCase();
-    if (!f.name.trim() || !email) {
-      setError("Full name and login email are required.");
+    if (!f.name.trim()) {
+      setError("Full name is required.");
       return;
     }
-    if (s.agents.some((a) => a.email.toLowerCase() === email)) {
-      setError("An agent with that email is already registered.");
+    if (f.phone.replace(/\D/g, "").length < 9) {
+      setError("Enter the agent's phone number — it is their login.");
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("That email address does not look right. You can also leave it blank.");
       return;
     }
     setBusy(true);
     const acc = await createAccount({
       name: f.name,
       email,
-      password: f.password,
       school: f.territory,
       phone: f.phone,
       role: "agent",
@@ -64,13 +68,14 @@ function Agents() {
     const agent = addAgent({
       accountId: acc.account.id,
       name: f.name.trim(),
-      phone: f.phone.trim(),
+      phone: acc.account.phone ?? f.phone.trim(),
       email,
       territory: f.territory,
     });
     setError("");
+    setOtp({ phone: acc.account.phone ?? f.phone.trim(), code: acc.account.password ?? "" });
     setMsg(
-      `${agent.name} registered as Pending. They can log in with ${email} and must pass training before activating paying accounts.`,
+      `${agent.name} registered as Pending. Send them the one-time password below — they log in with their phone number and must pass training before activating paying accounts.`,
     );
     setF((prev) => ({ ...prev, name: "", phone: "", email: "" }));
     setBusy(false);
@@ -116,7 +121,9 @@ function Agents() {
           <Field label="Full name" value={f.name} onChange={(e) => setF((p) => ({ ...p, name: e.target.value }))} />
           <Field label="Phone" value={f.phone} onChange={(e) => setF((p) => ({ ...p, phone: e.target.value }))} />
           <Field label="Email / login" type="email" value={f.email} onChange={(e) => setF((p) => ({ ...p, email: e.target.value }))} />
-          <Field label="Temporary password" value={f.password} onChange={(e) => setF((p) => ({ ...p, password: e.target.value }))} />
+          <p className="rounded-md bg-surface-low p-3 text-sm text-on-surface-variant sm:col-span-2 xl:col-span-1">
+            A one-time password is generated after registration and shown below.
+          </p>
           <SelectField label="Territory / zone" value={f.territory} onChange={(e) => setF((p) => ({ ...p, territory: e.target.value }))}>
             {zones.map((z) => (
               <option key={z} value={z}>
@@ -127,9 +134,15 @@ function Agents() {
         </div>
         {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
         {msg ? <p className="text-sm font-semibold text-primary">{msg}</p> : null}
+        {otp ? (
+          <div className="rounded-md border border-outline-variant bg-surface-low p-3 text-sm text-on-surface">
+            <p className="font-bold">Send these login details to the agent</p>
+            <p className="mt-1">Phone: <span className="font-semibold">{otp.phone}</span></p>
+            <p>One-time password: <span className="font-semibold tracking-widest">{otp.code}</span></p>
+          </div>
+        ) : null}
         <PrimaryButton onClick={register} disabled={busy}>
           <Icon name="person_add" /> {busy ? "Registering…" : "Register agent"}
-
         </PrimaryButton>
       </Card>
 

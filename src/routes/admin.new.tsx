@@ -77,20 +77,21 @@ function NewAccount() {
     });
   };
 
+  const emailOk = (v: string) => !v.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const phoneOk = (v: string) => v.replace(/\D/g, "").length >= 9;
+
   const next = () => {
     if (step === 0 && (!f.ownerName.trim() || !f.school.trim())) {
       setError("Owner name and school name are required.");
       return;
     }
-    if (step === 2) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
-        setError("Enter a valid login email for the operator.");
-        return;
-      }
-      if (f.password.length < 6) {
-        setError("The password needs at least 6 characters.");
-        return;
-      }
+    if (step === 0 && !phoneOk(f.phone)) {
+      setError("Enter the operator's phone number — it is their login.");
+      return;
+    }
+    if (step === 2 && !emailOk(f.email)) {
+      setError("That email address does not look right. You can also leave it blank.");
+      return;
     }
     setError("");
     setStep((x) => x + 1);
@@ -98,19 +99,18 @@ function NewAccount() {
 
   const finish = async () => {
     if (busy) return;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
-      setError("Enter a valid login email for the operator.");
+    if (!phoneOk(f.phone)) {
+      setError("Enter the operator's phone number — it is their login.");
       return;
     }
-    if (f.password.length < 6) {
-      setError("The password needs at least 6 characters.");
+    if (!emailOk(f.email)) {
+      setError("That email address does not look right. You can also leave it blank.");
       return;
     }
     setBusy(true);
     const res = await createOperator({
       name: f.ownerName,
       email: f.email,
-      password: f.password,
       school: f.school,
       phone: f.phone,
     });
@@ -120,13 +120,16 @@ function NewAccount() {
       return;
     }
     setError("");
+    const otp = res.account.password ?? "";
+    const phone = res.account.phone ?? f.phone;
+    set({ password: otp, phone });
     const trialDays = Number(f.trialDays) || 0;
     addTenant({
       accountId: res.account.id,
       canteenName: f.canteenName.trim() || `${f.ownerName.trim()}'s canteen`,
       school: f.school,
       ownerName: f.ownerName,
-      phone: f.phone,
+      phone,
       category: f.category,
       zone: f.zone,
       agentId: f.agentId || null,
@@ -157,18 +160,19 @@ function NewAccount() {
     const details = {
       name: f.ownerName,
       email: f.email,
-      password: f.password,
+      password: otp,
+      phone,
       school: f.school,
-      phone: f.phone,
       capital: Number(f.capital) || 0,
       termName: f.termName,
     };
     const template = s.settings.welcomeTemplate?.trim();
     const msg = template ? fillTemplate(template, details) : inviteMessage(details);
-    setInvite({ wa: whatsappLink(f.phone, msg), mail: emailLink(f.email, msg), msg });
+    setInvite({ wa: whatsappLink(phone, msg), mail: emailLink(f.email, msg), msg });
     setStep(4);
     setBusy(false);
   };
+
 
 
   return (
@@ -249,21 +253,23 @@ function NewAccount() {
 
       {step === 2 && (
         <Card className="space-y-sm">
-          <div className="grid gap-sm sm:grid-cols-2">
-            <Field label="Login email" type="email" value={f.email} onChange={(e) => set({ email: e.target.value })} />
-            <Field
-              label="Auto-generated password"
-              value={f.password}
-              hint="At least 6 characters."
-              onChange={(e) => set({ password: e.target.value })}
-            />
+          <div className="rounded-lg border border-outline-variant/60 bg-surface-low p-sm">
+            <p className="label-bold text-on-surface-variant">How this operator signs in</p>
+            <p className="mt-1 text-sm text-on-surface">
+              They log in with their phone number{" "}
+              <span className="font-bold">{f.phone.trim() || "—"}</span> and a one-time password
+              SmartCanteen generates when you create the account. You send it to them on WhatsApp on
+              the last step. After their first login they set a private PIN in Settings and unlock
+              the app with that.
+            </p>
           </div>
-          <button
-            onClick={() => set({ password: `sc${Math.random().toString(36).slice(2, 8)}` })}
-            className="min-h-11 rounded-full border-2 border-primary px-4 text-sm font-bold text-primary"
-          >
-            <Icon name="autorenew" className="text-[18px]" /> Generate password
-          </button>
+          <Field
+            label="Email address (optional)"
+            type="email"
+            hint="Many operators have no email — leave this blank and use WhatsApp."
+            value={f.email}
+            onChange={(e) => set({ email: e.target.value })}
+          />
           <SectionTitle>Starting stock — bulk CSV (name,qty,buy,sell)</SectionTitle>
           <textarea
             value={f.csv}
@@ -278,6 +284,7 @@ function NewAccount() {
           {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
         </Card>
       )}
+
 
       {step === 3 && (
         <Card className="space-y-sm">
@@ -320,12 +327,16 @@ function NewAccount() {
                 <dd className="truncate font-semibold">{loginLink.replace("https://", "")}</dd>
               </div>
               <div className="flex justify-between gap-2">
+                <dt className="text-on-surface-variant">Phone (their login)</dt>
+                <dd className="truncate font-semibold">{f.phone.trim() || "—"}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
                 <dt className="text-on-surface-variant">Email</dt>
                 <dd className="truncate font-semibold">{f.email.trim().toLowerCase() || "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-on-surface-variant">Password</dt>
-                <dd className="font-semibold">{f.password}</dd>
+                <dt className="text-on-surface-variant">One-time password</dt>
+                <dd className="font-semibold tracking-widest">{f.password || "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-on-surface-variant">Opening capital</dt>
