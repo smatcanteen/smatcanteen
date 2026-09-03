@@ -121,7 +121,9 @@ function Agents() {
           <Field label="Full name" value={f.name} onChange={(e) => setF((p) => ({ ...p, name: e.target.value }))} />
           <Field label="Phone" value={f.phone} onChange={(e) => setF((p) => ({ ...p, phone: e.target.value }))} />
           <Field label="Email / login" type="email" value={f.email} onChange={(e) => setF((p) => ({ ...p, email: e.target.value }))} />
-          <Field label="Temporary password" value={f.password} onChange={(e) => setF((p) => ({ ...p, password: e.target.value }))} />
+          <p className="rounded-md bg-surface-low p-3 text-sm text-on-surface-variant sm:col-span-2 xl:col-span-1">
+            A one-time password is generated after registration and shown below.
+          </p>
           <SelectField label="Territory / zone" value={f.territory} onChange={(e) => setF((p) => ({ ...p, territory: e.target.value }))}>
             {zones.map((z) => (
               <option key={z} value={z}>
@@ -132,9 +134,15 @@ function Agents() {
         </div>
         {error ? <p className="text-sm font-semibold text-tertiary">{error}</p> : null}
         {msg ? <p className="text-sm font-semibold text-primary">{msg}</p> : null}
+        {otp ? (
+          <div className="rounded-md border border-outline-variant bg-surface-low p-3 text-sm text-on-surface">
+            <p className="font-bold">Send these login details to the agent</p>
+            <p className="mt-1">Phone: <span className="font-semibold">{otp.phone}</span></p>
+            <p>One-time password: <span className="font-semibold tracking-widest">{otp.code}</span></p>
+          </div>
+        ) : null}
         <PrimaryButton onClick={register} disabled={busy}>
           <Icon name="person_add" /> {busy ? "Registering…" : "Register agent"}
-
         </PrimaryButton>
       </Card>
 
