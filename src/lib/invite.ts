@@ -17,11 +17,12 @@ export const loginLink = "https://smatcanteen.lovable.app/login";
 
 const money = (n: number) => n.toLocaleString("en-UG");
 
-/** Fill {name} {email} {password} {link} {school} in an admin template. */
+/** Fill {name} {phone} {email} {password} {link} {school} in an admin template. */
 export function fillTemplate(template: string, d: InviteDetails) {
   return template
     .replaceAll("{name}", d.name.trim())
-    .replaceAll("{email}", d.email.trim().toLowerCase())
+    .replaceAll("{phone}", d.phone ?? "")
+    .replaceAll("{email}", (d.email ?? "").trim().toLowerCase())
     .replaceAll("{password}", d.password)
     .replaceAll("{school}", d.school ?? "")
     .replaceAll("{link}", loginLink);
@@ -35,18 +36,21 @@ export function inviteMessage(d: InviteDetails) {
     `Your SmartCanteen account for ${d.school || "your canteen"} is ready.`,
     "",
     `Open: ${loginLink}`,
-    `Email: ${d.email.trim().toLowerCase()}`,
-    `Password: ${d.password}`,
+    `Phone number to log in: ${d.phone ?? ""}`,
+    `One-time password: ${d.password}`,
   ];
+  if (d.email?.trim()) lines.push(`Email on file: ${d.email.trim().toLowerCase()}`);
   if (d.termName) lines.push(`Term: ${d.termName}`);
   if (d.capital) lines.push(`Opening cash entered for you: UGX ${money(d.capital)}`);
   lines.push(
     "",
-    "Please log in and change your password in Settings.",
+    "After you log in, open Settings and set your private PIN.",
+    "You will then unlock SmartCanteen with that PIN — keep it secret.",
     "SmartCanteen — the smarter way to run your canteen.",
   );
   return lines.join("\n");
 }
+
 
 /** wa.me deep link. Returns null when there is no usable phone number. */
 export function whatsappLink(phone: string | undefined, message: string) {
