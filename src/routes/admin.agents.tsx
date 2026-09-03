@@ -27,10 +27,11 @@ export const Route = createFileRoute("/admin/agents")({
 function Agents() {
   const { s, addAgent, updateAgent, certifyAgent, updateSettings } = usePlatform();
   const { createAccount } = useAuth();
-  const [f, setF] = useState({ name: "", phone: "", email: "", territory: zones[0]!, password: "agent1234" });
+  const [f, setF] = useState({ name: "", phone: "", email: "", territory: zones[0]! });
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [otp, setOtp] = useState<{ phone: string; code: string } | null>(null);
 
   const avgChurn =
     s.agents.reduce((a, x) => a + agentChurnRate(x.id, s.tenants), 0) / Math.max(1, s.agents.length);
