@@ -291,6 +291,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
   const [state, setState] = useState<State>(seed);
   const [hydrated, setHydrated] = useState(false);
+  /** Blocks cloud writes until we know what the cloud already holds. */
+  const [syncReady, setSyncReady] = useState(false);
+  /** Set when a write failed (offline); the next change retries everything. */
+  const pendingRef = useRef(false);
 
   // Load (or create) the cash book that belongs to the signed-in account.
   // Local storage answers instantly (so the app works offline), then the
@@ -299,6 +303,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!ready) return;
     let alive = true;
     setHydrated(false);
+    setSyncReady(false);
     const base = baseFor(userId);
     let local: State = base;
     try {
@@ -312,19 +317,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     if (!userId) return;
     void (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("canteen_books")
         .select("data, updated_at")
         .eq("user_id", userId)
         .maybeSingle();
-      if (!alive || !data?.data) return;
-      const cloud = data.data as Partial<State>;
-      const cloudAt = new Date(data.updated_at).getTime();
+      if (!alive) return;
       const localAt = Number(localStorage.getItem(`${storeKeyFor(userId)}.updatedAt`) ?? 0);
-      if (cloudAt > localAt) {
-        setState({ ...base, ...cloud });
-        localStorage.setItem(`${storeKeyFor(userId)}.updatedAt`, String(cloudAt));
+      if (!error && data?.data) {
+        const cloudAt = new Date(data.updated_at).getTime();
+        if (cloudAt > localAt) {
+          setState({ ...base, ...(data.data as Partial<State>) });
+          localStorage.setItem(`${storeKeyFor(userId)}.updatedAt`, String(cloudAt));
+        }
       }
+      // Offline (error): stay local-only so a stale cloud copy can never
+      // resurrect data the operator has already cleared on this device.
+      if (alive && !error) setSyncReady(true);
     })();
 
     return () => {
@@ -341,7 +350,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
-    if (!userId) return;
+    if (!userId || !syncReady) return;
     // Debounced push; a failure just leaves the local copy authoritative and
     // the next change (or reconnection) retries it.
     const t = setTimeout(() => {
@@ -350,10 +359,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .upsert(
           { user_id: userId, data: state as unknown as Json, updated_at: new Date(updatedAt).toISOString() },
           { onConflict: "user_id" },
-        );
+        )
+        .then(({ error }) => {
+          pendingRef.current = !!error;
+        });
     }, 800);
     return () => clearTimeout(t);
-  }, [state, hydrated, userId]);
+  }, [state, hydrated, userId, syncReady]);
+
+  // Coming back online: flush whatever the device holds so nothing entered
+  // offline is lost.
+  useEffect(() => {
+    if (typeof window === "undefined" || !userId) return;
+    const flush = () => {
+      if (!pendingRef.current) return;
+      void supabase
+        .from("canteen_books")
+        .upsert(
+          { user_id: userId, data: state as unknown as Json, updated_at: new Date().toISOString() },
+          { onConflict: "user_id" },
+        )
+        .then(({ error }) => {
+          pendingRef.current = !!error;
+        });
+    };
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [userId, state]);
 
 
 
