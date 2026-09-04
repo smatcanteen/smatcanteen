@@ -128,22 +128,26 @@ function Login() {
 
               <div>
                 <label className="mb-1 block text-sm font-bold text-on-surface-variant" htmlFor="email">
-                  Email
+                  Phone number or email
                 </label>
                 <input
                   id="email"
-                  type="email"
-                  autoComplete="email"
+                  type="text"
+                  inputMode="text"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@school.ac.ug"
+                  placeholder="0772 000 000"
                   className="h-12 min-h-12 w-full rounded-md border-2 border-outline-variant bg-surface-low px-3 font-semibold text-on-surface outline-none focus:border-primary"
                 />
+                <span className="mt-1 block text-xs text-on-surface-variant">
+                  Canteen operators and field agents use their phone number. Admin staff use their email.
+                </span>
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-bold text-on-surface-variant" htmlFor="password">
-                  Password
+                  Password or one-time password
                 </label>
                 <div className="relative">
                   <input
@@ -163,6 +167,9 @@ function Login() {
                     <Icon name={show ? "visibility_off" : "visibility"} />
                   </button>
                 </div>
+                <span className="mt-1 block text-xs text-on-surface-variant">
+                  New here? Use the one-time password sent to you on WhatsApp, then set your PIN in Settings.
+                </span>
               </div>
 
               {error ? (
