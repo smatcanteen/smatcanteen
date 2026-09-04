@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "@/lib/store";
 import { AuthProvider } from "@/lib/auth";
 import { PlatformProvider } from "@/lib/platform";
+import { InstallApp } from "@/components/InstallApp";
+import { registerAppServiceWorker } from "@/lib/pwa";
 
 
 function NotFoundComponent() {
@@ -138,6 +140,10 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    registerAppServiceWorker();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -145,6 +151,7 @@ function RootComponent() {
         <StoreProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <InstallApp />
         </StoreProvider>
         </PlatformProvider>
       </AuthProvider>
