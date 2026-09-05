@@ -163,15 +163,23 @@ function SettingsPage() {
           <div className="grid gap-sm md:grid-cols-2">
             <PrimaryButton
               tone="cta"
-              disabled={pin.length < 4}
-              onClick={() => {
+              disabled={pin.length < 4 || savingPin}
+              onClick={async () => {
+                setSavingPin(true);
                 setPin(pin, Number(lock) || 5);
+                const res = await setMyPin({ data: { pin } });
+                setSavingPin(false);
+                if (!res.ok) {
+                  setError(res.error ?? "Could not save that PIN.");
+                  return;
+                }
+                setError("");
                 setPinValue("");
                 flash();
               }}
             >
               <Icon name="lock" className="text-[20px]" />
-              Set PIN
+              {savingPin ? "Saving…" : "Set PIN"}
             </PrimaryButton>
             <button
               type="button"
@@ -185,7 +193,9 @@ function SettingsPage() {
               Remove PIN
             </button>
           </div>
-          <p className="text-xs text-outline">PIN must be 4–6 digits.</p>
+          <p className="text-xs text-outline">
+            PIN must be 4–6 digits. It replaces the one-time password you were sent, so keep it private.
+          </p>
         </Card>
       </div>
 
