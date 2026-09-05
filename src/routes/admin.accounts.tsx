@@ -221,18 +221,77 @@ function Accounts() {
                   </button>
                   {can(user?.role, "suspend") ? (
                     <button
-                      onClick={() => {
+                      disabled={busyId === t.accountId}
+                      onClick={async () => {
+                        setBusyId(t.accountId);
                         updateTenant(t.accountId, {
                           status: t.status === "suspended" ? "active" : "suspended",
                         });
-                        toggleAccount(t.accountId);
+                        await toggleAccount(t.accountId);
+                        setBusyId(null);
                       }}
-                      className="min-h-11 rounded-full bg-tertiary px-4 text-sm font-bold text-on-tertiary"
+                      className="min-h-11 rounded-full bg-tertiary px-4 text-sm font-bold text-on-tertiary disabled:opacity-50"
                     >
-                      {t.status === "suspended" ? "Restore access" : "Suspend account"}
+                      {t.status === "suspended" ? "Restore access" : "Pause account"}
+                    </button>
+                  ) : null}
+                  {can(user?.role, "suspend") ? (
+                    <button
+                      disabled={busyId === t.accountId}
+                      onClick={async () => {
+                        setBusyId(t.accountId);
+                        const res = await resendOtp(t.accountId);
+                        setBusyId(null);
+                        if (!res.ok) {
+                          setActionError(res.error ?? "Could not issue a new one-time password.");
+                          return;
+                        }
+                        setActionError("");
+                        setOtp({ id: t.accountId, code: res.otp ?? "" });
+                      }}
+                      className="min-h-11 rounded-full border-2 border-outline-variant px-4 text-sm font-bold text-on-surface-variant disabled:opacity-50"
+                    >
+                      <Icon name="sms" className="text-[18px]" /> New one-time password
+                    </button>
+                  ) : null}
+                  {user?.role === "admin" ? (
+                    <button
+                      disabled={busyId === t.accountId}
+                      onClick={async () => {
+                        if (!confirm(`Delete ${t.canteenName} permanently? This cannot be undone.`)) return;
+                        setBusyId(t.accountId);
+                        const res = await removeAccount(t.accountId);
+                        setBusyId(null);
+                        if (!res.ok) {
+                          setActionError(res.error ?? "Could not delete that account.");
+                          return;
+                        }
+                        setActionError("");
+                        updateTenant(t.accountId, { status: "suspended" });
+                        logAction(user?.name ?? "admin", `Deleted account ${t.canteenName}`);
+                      }}
+                      className="min-h-11 rounded-full px-4 text-sm font-bold text-tertiary underline disabled:opacity-50"
+                    >
+                      Delete permanently
                     </button>
                   ) : null}
                 </div>
+
+                {otp?.id === t.accountId ? (
+                  <p className="rounded-md bg-surface-high p-3 text-sm font-semibold text-on-surface">
+                    New one-time password for {t.ownerName}:{" "}
+                    <span className="tracking-widest">{otp.code}</span> — send it on WhatsApp. Their old
+                    PIN no longer works.
+                  </p>
+                ) : null}
+                {actionError ? (
+                  <p className="text-sm font-semibold text-tertiary">{actionError}</p>
+                ) : null}
+                {accounts.some((a) => a.id === t.accountId && !a.active) ? (
+                  <p className="text-xs font-semibold text-tertiary">
+                    This login is paused — the operator cannot sign in.
+                  </p>
+                ) : null}
 
                 <div className="flex gap-sm">
                   <div className="flex-1">
