@@ -42,7 +42,7 @@ const filters: { key: TenantStatus | "all"; label: string }[] = [
 ];
 
 function Accounts() {
-  const { user, toggleAccount } = useAuth();
+  const { user, accounts, toggleAccount, removeAccount, resendOtp } = useAuth();
   const { s, updateTenant, toggleTag, bulkStatus, addTenantNote, logAction } = usePlatform();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<TenantStatus | "all">("all");
@@ -50,6 +50,9 @@ function Accounts() {
   const [picked, setPicked] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [otp, setOtp] = useState<{ id: string; code: string } | null>(null);
+  const [actionError, setActionError] = useState("");
 
   const rows = useMemo(
     () =>
