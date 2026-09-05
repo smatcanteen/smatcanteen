@@ -5,6 +5,7 @@ import { AccountAvatar, useAccountLogo } from "@/components/Brand";
 import { Icon } from "@/components/Icon";
 import { Card, Field, PrimaryButton, SectionTitle, SelectField } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
+import { setMyPin } from "@/lib/accounts.functions";
 import { useStore, type State } from "@/lib/store";
 
 
@@ -37,6 +38,7 @@ function SettingsPage() {
   const [pin, setPinValue] = useState("");
   const [lock, setLock] = useState(String(state.autoLockMin));
   const [saved, setSaved] = useState(false);
+  const [savingPin, setSavingPin] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
@@ -163,15 +165,23 @@ function SettingsPage() {
           <div className="grid gap-sm md:grid-cols-2">
             <PrimaryButton
               tone="cta"
-              disabled={pin.length < 4}
-              onClick={() => {
+              disabled={pin.length < 4 || savingPin}
+              onClick={async () => {
+                setSavingPin(true);
                 setPin(pin, Number(lock) || 5);
+                const res = await setMyPin({ data: { pin } });
+                setSavingPin(false);
+                if (!res.ok) {
+                  setError(res.error ?? "Could not save that PIN.");
+                  return;
+                }
+                setError("");
                 setPinValue("");
                 flash();
               }}
             >
               <Icon name="lock" className="text-[20px]" />
-              Set PIN
+              {savingPin ? "Saving…" : "Set PIN"}
             </PrimaryButton>
             <button
               type="button"
@@ -185,7 +195,9 @@ function SettingsPage() {
               Remove PIN
             </button>
           </div>
-          <p className="text-xs text-outline">PIN must be 4–6 digits.</p>
+          <p className="text-xs text-outline">
+            PIN must be 4–6 digits. It replaces the one-time password you were sent, so keep it private.
+          </p>
         </Card>
       </div>
 
