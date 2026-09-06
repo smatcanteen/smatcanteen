@@ -137,7 +137,17 @@ export const resetOneTimePassword = createServerFn({ method: "POST" })
     const password = otp();
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.id, { password });
     if (error) return { ok: false as const, error: error.message };
-    await supabaseAdmin.from("profiles").update({ otp_pending: true, pin_hash: null }).eq("id", data.id);
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        otp_pending: true,
+        pin_hash: null,
+        pin_fail_count: 0,
+        pin_locked: false,
+        pin_reset_requested: false,
+        first_run_done: false,
+      })
+      .eq("id", data.id);
     return { ok: true as const, otp: password };
   });
 
@@ -150,7 +160,13 @@ export const setMyPin = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("profiles")
-      .update({ pin_hash: await hashPin(data.pin), otp_pending: false })
+      .update({
+        pin_hash: await hashPin(data.pin),
+        otp_pending: false,
+        pin_fail_count: 0,
+        pin_locked: false,
+        pin_reset_requested: false,
+      })
       .eq("id", context.userId);
     if (error) return { ok: false as const, error: error.message };
     return { ok: true as const };
@@ -268,4 +284,126 @@ export const listAccountProgress = createServerFn({ method: "POST" })
     });
 
     return { ok: true as const, rows };
+  });
+
+/** How many wrong PIN tries are allowed before the account is locked. */
+export const PIN_MAX_TRIES = 4;
+
+/**
+ * PIN sign-in. Public on purpose — it is the operator's front door — and
+ * protected by locking the account after four wrong tries.
+ */
+export const signInWithPin = createServerFn({ method: "POST" })
+  .inputValidator((data: { phone: string; pin: string }) => data)
+  .handler(async ({ data }) => {
+    const phone = normalisePhone(data.phone);
+    const fail = { ok: false as const, error: "Phone number or PIN is not correct." };
+    if (phone.length < 9 || !/^\d{4,6}$/.test(data.pin)) return fail;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("profiles")
+      .select("id, active, pin_hash, pin_fail_count, pin_locked")
+      .eq("phone", phone)
+      .maybeSingle();
+    if (!row) return fail;
+    if (!row.active) {
+      return { ok: false as const, error: "This account has been paused by the administrator." };
+    }
+    if (row.pin_locked) {
+      return {
+        ok: false as const,
+        locked: true as const,
+        error: "Too many wrong PINs. Ask the administrator for a new PIN.",
+      };
+    }
+    const stored = row.pin_hash as string | null;
+    if (!stored) {
+      return {
+        ok: false as const,
+        error: "No PIN set yet — sign in with your one-time password first.",
+      };
+    }
+
+    const [salt] = stored.split("$");
+    if ((await hashPin(data.pin, salt)) !== stored) {
+      const tries = (row.pin_fail_count ?? 0) + 1;
+      const locked = tries >= PIN_MAX_TRIES;
+      await supabaseAdmin
+        .from("profiles")
+        .update({ pin_fail_count: tries, pin_locked: locked })
+        .eq("id", row.id);
+      return locked
+        ? {
+            ok: false as const,
+            locked: true as const,
+            error: "Too many wrong PINs. Ask the administrator for a new PIN.",
+          }
+        : {
+            ok: false as const,
+            triesLeft: PIN_MAX_TRIES - tries,
+            error: `Wrong PIN. ${PIN_MAX_TRIES - tries} ${
+              PIN_MAX_TRIES - tries === 1 ? "try" : "tries"
+            } left.`,
+          };
+    }
+
+    await supabaseAdmin
+      .from("profiles")
+      .update({ pin_fail_count: 0, pin_locked: false, pin_reset_requested: false })
+      .eq("id", row.id);
+
+    // Hand the browser a one-time code it can exchange for a real session.
+    const link = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email: phoneEmail(phone),
+    });
+    const code = link.data?.properties?.email_otp;
+    if (link.error || !code) {
+      return { ok: false as const, error: "Could not open your session. Try again." };
+    }
+    return { ok: true as const, email: phoneEmail(phone), code };
+  });
+
+/** "Forgot PIN" / "Forgot password" — tells the administrator to issue a new one. */
+export const requestAccessHelp = createServerFn({ method: "POST" })
+  .inputValidator((data: { phone: string }) => data)
+  .handler(async ({ data }) => {
+    const phone = normalisePhone(data.phone);
+    if (phone.length >= 9) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("profiles").update({ pin_reset_requested: true }).eq("phone", phone);
+    }
+    // Always the same answer, so nobody can fish for who has an account.
+    return { ok: true as const };
+  });
+
+/** What the app needs to know right after sign-in to decide where to send someone. */
+export const myFirstRunState = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("profiles")
+      .select("otp_pending, first_run_done, pin_hash")
+      .eq("id", context.userId)
+      .maybeSingle();
+    return {
+      ok: true as const,
+      otpPending: !!data?.otp_pending,
+      firstRunDone: !!data?.first_run_done,
+      hasPin: !!data?.pin_hash,
+    };
+  });
+
+/** Marks the guided first-time setup (PIN + term capital) as finished. */
+export const markFirstRunDone = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ first_run_done: true, otp_pending: false })
+      .eq("id", context.userId);
+    if (error) return { ok: false as const, error: error.message };
+    return { ok: true as const };
   });
