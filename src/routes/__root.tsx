@@ -123,14 +123,50 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/**
+ * Critical styles + a branded splash so the very first paint is never the
+ * half-styled, overlapping layout people saw while the web fonts loaded.
+ */
+const criticalCss = `
+  html { background: #f5f1e6; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #f5f1e6; overflow-x: hidden;
+    font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif; }
+  #app-splash { position: fixed; inset: 0; z-index: 9999; display: flex;
+    align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    background: #2f6b46; color: #fff; transition: opacity .3s ease; }
+  #app-splash p { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; opacity: .8; }
+  #app-splash span { width: 34px; height: 34px; border-radius: 999px;
+    border: 3px solid rgba(255,255,255,.3); border-top-color: #fff;
+    animation: sc-spin .8s linear infinite; }
+  @keyframes sc-spin { to { transform: rotate(360deg); } }
+  html.app-ready #app-splash { opacity: 0; pointer-events: none; visibility: hidden; }
+`;
+
+const readyScript = `
+  (function(){
+    var d=document, done=false;
+    function ready(){ if(done) return; done=true; d.documentElement.classList.add('app-ready'); }
+    if (d.fonts && d.fonts.ready) { d.fonts.ready.then(ready); }
+    window.addEventListener('load', ready);
+    setTimeout(ready, 2500);
+  })();
+`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
       </head>
       <body>
+        <div id="app-splash" aria-hidden="true">
+          <span />
+          <p>SmartCanteen</p>
+        </div>
         {children}
+        <script dangerouslySetInnerHTML={{ __html: readyScript }} />
         <Scripts />
       </body>
     </html>
