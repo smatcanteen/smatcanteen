@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
 import { useAuth, roleLabels, isAdminRole, homeForRole, type Role } from "@/lib/auth";
@@ -51,8 +51,6 @@ const tabs: { to: string; label: string; perm: AdminPerm }[] = [
 export function AdminShell({ children }: { children: ReactNode }) {
   const { user, ready, logout } = useAuth();
   const navigate = useNavigate();
-  const router = useRouter();
-  const path = router.state.location.pathname;
 
   useEffect(() => {
     if (!ready) return;
@@ -103,11 +101,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 key={t.to}
                 to={t.to}
                 preload="intent"
-                className={`shrink-0 rounded-full px-3 py-2 text-sm font-bold transition-colors sm:px-4 ${
-                  path === t.to
-                    ? "bg-on-primary text-primary"
-                    : "text-on-primary/80 hover:bg-on-primary/10"
-                }`}
+                activeOptions={{ exact: t.to === "/admin" }}
+                activeProps={{
+                  className: "bg-on-primary text-primary shadow-raised",
+                  "aria-current": "page",
+                }}
+                inactiveProps={{ className: "text-on-primary/80 hover:bg-on-primary/10" }}
+                className="shrink-0 rounded-full px-3 py-2 text-sm font-bold transition-colors sm:px-4"
               >
                 {t.label}
               </Link>
