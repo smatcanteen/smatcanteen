@@ -44,7 +44,15 @@ const filters: { key: TenantStatus | "all"; label: string }[] = [
 
 function Accounts() {
   const { user, accounts, toggleAccount, removeAccount, resendOtp } = useAuth();
-  const { s, updateTenant, toggleTag, bulkStatus, addTenantNote, logAction } = usePlatform();
+  const { s, updateTenant, removeTenant, toggleTag, bulkStatus, addTenantNote, logAction } =
+    usePlatform();
+  type Progress = {
+    accountId: string;
+    entries: number;
+    lastLoginAt: number | null;
+    checklist: { loggedIn: boolean; capitalSet: boolean; firstStock: boolean; firstSale: boolean };
+  };
+  const [live, setLive] = useState<Record<string, Progress>>({});
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<TenantStatus | "all">("all");
   const [zone, setZone] = useState("all");
