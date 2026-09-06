@@ -306,7 +306,9 @@ function Accounts() {
                           return;
                         }
                         setActionError("");
-                        updateTenant(t.accountId, { status: "suspended" });
+                        setOpenId(null);
+                        setPicked((p) => p.filter((x) => x !== t.accountId));
+                        removeTenant(t.accountId);
                         logAction(user?.name ?? "admin", `Deleted account ${t.canteenName}`);
                       }}
                       className="min-h-11 rounded-full px-4 text-sm font-bold text-tertiary underline disabled:opacity-50"
