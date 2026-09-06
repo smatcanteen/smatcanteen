@@ -41,12 +41,16 @@ export type Database = {
           created_at: string
           created_by: string | null
           email: string | null
+          first_run_done: boolean
           full_name: string
           id: string
           last_login_at: string | null
           otp_pending: boolean
           phone: string | null
+          pin_fail_count: number
           pin_hash: string | null
+          pin_locked: boolean
+          pin_reset_requested: boolean
           school: string
           updated_at: string
         }
@@ -55,12 +59,16 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          first_run_done?: boolean
           full_name?: string
           id: string
           last_login_at?: string | null
           otp_pending?: boolean
           phone?: string | null
+          pin_fail_count?: number
           pin_hash?: string | null
+          pin_locked?: boolean
+          pin_reset_requested?: boolean
           school?: string
           updated_at?: string
         }
@@ -69,12 +77,16 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          first_run_done?: boolean
           full_name?: string
           id?: string
           last_login_at?: string | null
           otp_pending?: boolean
           phone?: string | null
+          pin_fail_count?: number
           pin_hash?: string | null
+          pin_locked?: boolean
+          pin_reset_requested?: boolean
           school?: string
           updated_at?: string
         }
