@@ -299,7 +299,10 @@ function Accounts() {
                       onClick={async () => {
                         if (!confirm(`Delete ${t.canteenName} permanently? This cannot be undone.`)) return;
                         setBusyId(t.accountId);
-                        const res = await removeAccount(t.accountId);
+                        // Sample rows never had a real login, so a backend
+                        // "not found" must still clear them from the list.
+                        const hasLogin = accounts.some((a) => a.id === t.accountId);
+                        const res = hasLogin ? await removeAccount(t.accountId) : { ok: true };
                         setBusyId(null);
                         if (!res.ok) {
                           setActionError(res.error ?? "Could not delete that account.");
