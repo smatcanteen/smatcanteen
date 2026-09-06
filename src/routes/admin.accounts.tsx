@@ -63,16 +63,46 @@ function Accounts() {
   const [otp, setOtp] = useState<{ id: string; code: string } | null>(null);
   const [actionError, setActionError] = useState("");
 
+  // Pull the operators' real progress from the backend so the onboarding ticks
+  // below show what they actually did, not a stale local copy.
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await listAccountProgress();
+        if (!alive || !res.ok) return;
+        const map: Record<string, Progress> = {};
+        res.rows.forEach((r) => (map[r.accountId] = r as Progress));
+        setLive(map);
+      } catch {
+        /* offline — keep whatever we already show */
+      }
+    };
+    void load();
+    const t = setInterval(load, 30_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, []);
+
   const rows = useMemo(
     () =>
-      s.tenants.filter((t) => {
-        const hay = `${t.canteenName} ${t.school} ${t.ownerName} ${t.phone}`.toLowerCase();
-        if (q && !hay.includes(q.toLowerCase())) return false;
-        if (filter !== "all" && t.status !== filter) return false;
-        if (zone !== "all" && t.zone !== zone) return false;
-        return true;
-      }),
-    [s.tenants, q, filter, zone],
+      s.tenants
+        .map((t) => {
+          const p = live[t.accountId];
+          return p
+            ? { ...t, checklist: p.checklist, entries: p.entries, lastLoginAt: p.lastLoginAt }
+            : t;
+        })
+        .filter((t) => {
+          const hay = `${t.canteenName} ${t.school} ${t.ownerName} ${t.phone}`.toLowerCase();
+          if (q && !hay.includes(q.toLowerCase())) return false;
+          if (filter !== "all" && t.status !== filter) return false;
+          if (zone !== "all" && t.zone !== zone) return false;
+          return true;
+        }),
+    [s.tenants, live, q, filter, zone],
   );
 
   const toggle = (id: string) =>
