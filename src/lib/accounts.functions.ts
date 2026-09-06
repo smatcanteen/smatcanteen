@@ -212,3 +212,60 @@ export const ensureBootstrap = createServerFn({ method: "POST" }).handler(async 
   }
   return { ok: true as const, created: true };
 });
+
+/**
+ * Live onboarding progress for the admin account list.
+ *
+ * Reads each operator's own cash book straight from the backend, so the
+ * "Logged in / Opening capital / First stock / First sale" ticks on the admin
+ * side reflect what the operator actually did — no separate copy of the truth.
+ */
+export const listAccountProgress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: books }, { data: profiles }] = await Promise.all([
+      supabaseAdmin.from("canteen_books").select("user_id, data, updated_at"),
+      supabaseAdmin.from("profiles").select("id, last_login_at"),
+    ]);
+    const loginAt = new Map<string, number | null>();
+    (profiles ?? []).forEach((p: any) =>
+      loginAt.set(p.id, p.last_login_at ? new Date(p.last_login_at).getTime() : null),
+    );
+
+    const rows = (books ?? []).map((b: any) => {
+      const d = (b.data ?? {}) as any;
+      const txs: any[] = Array.isArray(d.txs) ? d.txs : [];
+      const capital = Number(d.capital ?? 0);
+      return {
+        accountId: b.user_id as string,
+        entries: txs.filter((t) => t.type !== "capital").length,
+        lastLoginAt: loginAt.get(b.user_id) ?? null,
+        checklist: {
+          loggedIn: !!loginAt.get(b.user_id),
+          capitalSet: capital > 0 || txs.some((t) => t.type === "capital"),
+          firstStock: txs.some((t) => t.type === "stock"),
+          firstSale: txs.some((t) => t.type === "sale"),
+        },
+      };
+    });
+
+    // Accounts that have logged in but never written a book yet still tick "logged in".
+    (profiles ?? []).forEach((p: any) => {
+      if (rows.some((r) => r.accountId === p.id)) return;
+      rows.push({
+        accountId: p.id,
+        entries: 0,
+        lastLoginAt: loginAt.get(p.id) ?? null,
+        checklist: {
+          loggedIn: !!loginAt.get(p.id),
+          capitalSet: false,
+          firstStock: false,
+          firstSale: false,
+        },
+      });
+    });
+
+    return { ok: true as const, rows };
+  });

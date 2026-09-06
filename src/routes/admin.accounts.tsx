@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { listAccountProgress } from "@/lib/accounts.functions";
 import { Icon } from "@/components/Icon";
 import { Card, Field, PrimaryButton, SectionTitle } from "@/components/ui-kit";
 import { Pill, can, statusTone } from "@/components/AdminShell";
@@ -43,7 +44,15 @@ const filters: { key: TenantStatus | "all"; label: string }[] = [
 
 function Accounts() {
   const { user, accounts, toggleAccount, removeAccount, resendOtp } = useAuth();
-  const { s, updateTenant, toggleTag, bulkStatus, addTenantNote, logAction } = usePlatform();
+  const { s, updateTenant, removeTenant, toggleTag, bulkStatus, addTenantNote, logAction } =
+    usePlatform();
+  type Progress = {
+    accountId: string;
+    entries: number;
+    lastLoginAt: number | null;
+    checklist: { loggedIn: boolean; capitalSet: boolean; firstStock: boolean; firstSale: boolean };
+  };
+  const [live, setLive] = useState<Record<string, Progress>>({});
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<TenantStatus | "all">("all");
   const [zone, setZone] = useState("all");
@@ -54,16 +63,46 @@ function Accounts() {
   const [otp, setOtp] = useState<{ id: string; code: string } | null>(null);
   const [actionError, setActionError] = useState("");
 
+  // Pull the operators' real progress from the backend so the onboarding ticks
+  // below show what they actually did, not a stale local copy.
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await listAccountProgress();
+        if (!alive || !res.ok) return;
+        const map: Record<string, Progress> = {};
+        res.rows.forEach((r) => (map[r.accountId] = r as Progress));
+        setLive(map);
+      } catch {
+        /* offline — keep whatever we already show */
+      }
+    };
+    void load();
+    const t = setInterval(load, 30_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, []);
+
   const rows = useMemo(
     () =>
-      s.tenants.filter((t) => {
-        const hay = `${t.canteenName} ${t.school} ${t.ownerName} ${t.phone}`.toLowerCase();
-        if (q && !hay.includes(q.toLowerCase())) return false;
-        if (filter !== "all" && t.status !== filter) return false;
-        if (zone !== "all" && t.zone !== zone) return false;
-        return true;
-      }),
-    [s.tenants, q, filter, zone],
+      s.tenants
+        .map((t) => {
+          const p = live[t.accountId];
+          return p
+            ? { ...t, checklist: p.checklist, entries: p.entries, lastLoginAt: p.lastLoginAt }
+            : t;
+        })
+        .filter((t) => {
+          const hay = `${t.canteenName} ${t.school} ${t.ownerName} ${t.phone}`.toLowerCase();
+          if (q && !hay.includes(q.toLowerCase())) return false;
+          if (filter !== "all" && t.status !== filter) return false;
+          if (zone !== "all" && t.zone !== zone) return false;
+          return true;
+        }),
+    [s.tenants, live, q, filter, zone],
   );
 
   const toggle = (id: string) =>
@@ -260,14 +299,19 @@ function Accounts() {
                       onClick={async () => {
                         if (!confirm(`Delete ${t.canteenName} permanently? This cannot be undone.`)) return;
                         setBusyId(t.accountId);
-                        const res = await removeAccount(t.accountId);
+                        // Sample rows never had a real login, so a backend
+                        // "not found" must still clear them from the list.
+                        const hasLogin = accounts.some((a) => a.id === t.accountId);
+                        const res = hasLogin ? await removeAccount(t.accountId) : { ok: true };
                         setBusyId(null);
                         if (!res.ok) {
                           setActionError(res.error ?? "Could not delete that account.");
                           return;
                         }
                         setActionError("");
-                        updateTenant(t.accountId, { status: "suspended" });
+                        setOpenId(null);
+                        setPicked((p) => p.filter((x) => x !== t.accountId));
+                        removeTenant(t.accountId);
                         logAction(user?.name ?? "admin", `Deleted account ${t.canteenName}`);
                       }}
                       className="min-h-11 rounded-full px-4 text-sm font-bold text-tertiary underline disabled:opacity-50"
