@@ -464,6 +464,13 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
           ...p,
           tenants: p.tenants.map((t) => (t.accountId === accountId ? { ...t, ...upd } : t)),
         })),
+      removeTenant: (accountId) =>
+        patch((p) => ({
+          ...p,
+          tenants: p.tenants.filter((t) => t.accountId !== accountId),
+          commissions: p.commissions.filter((c) => c.accountId !== accountId),
+          tickets: p.tickets.filter((t) => t.accountId !== accountId),
+        })),
       addTenantNote: (accountId, text) =>
         patch((p) => ({
           ...p,
